@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Statistic, Table, Tag, Progress, Space } from 'antd';
+import { Row, Col, Card, Statistic, Table, Tag, Progress, Space, List, Avatar, Divider } from 'antd';
 import {
   ClockCircleOutlined,
   CheckCircleOutlined,
@@ -10,9 +10,10 @@ import {
   BarChartOutlined,
   HeartOutlined,
   FileSearchOutlined,
+  RobotOutlined,
 } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { workflowService } from '../services/api';
+import { workflowService, healthService } from '../services/api';
 import { theme } from '../theme';
 
 interface WorkflowStats {
@@ -31,6 +32,18 @@ interface RecentWorkflow {
   recordsProcessed: number;
 }
 
+interface HealthSummary {
+  api: { status: string };
+  agents: Array<{ id: string; name: string; status: string; lastSeen?: string }>;
+  integrations: Array<{
+    id: string;
+    name: string;
+    status: string;
+    details?: any;
+    logs?: { lastLog?: string; errorCount?: number; logUrl?: string };
+  }>;
+}
+
 const Dashboard = () => {
   const [stats, setStats] = useState<WorkflowStats>({
     total: 0,
@@ -40,9 +53,11 @@ const Dashboard = () => {
   });
   const [recentWorkflows, setRecentWorkflows] = useState<RecentWorkflow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [health, setHealth] = useState<HealthSummary | null>(null);
 
   useEffect(() => {
     loadDashboardData();
+    loadHealth();
   }, []);
 
   const loadDashboardData = async () => {
@@ -62,6 +77,16 @@ const Dashboard = () => {
       setRecentWorkflows([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadHealth = async () => {
+    try {
+      const data = await healthService.getSystemHealth();
+      setHealth(data as HealthSummary);
+    } catch (error) {
+      console.error('Failed to load health data', error);
+      setHealth(null);
     }
   };
 
@@ -223,44 +248,83 @@ const Dashboard = () => {
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card 
+          <Card
             title={
-              <Space>
-                <HeartOutlined style={{ color: '#52c41a', fontSize: 18 }} />
-                <span style={{ fontSize: 16, fontWeight: 600 }}>System Health</span>
-              </Space>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Space style={{ display: 'flex', alignItems: 'center' }}>
+                  <HeartOutlined style={{ color: '#52c41a', fontSize: 18 }} />
+                  <span style={{ fontSize: 16, fontWeight: 600 }}>System Status</span>
+                </Space>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, alignSelf: 'flex-start' }}>
+                  <div style={{ textAlign: 'right', lineHeight: 1 }}>
+                    <div style={{ fontSize: 12, color: '#888' }}>API</div>
+                    <div style={{ fontSize: 14 }}>
+                      {health?.api?.status === 'ok' ? (
+                        <Tag style={{ border: '1px solid #52c41a', color: '#52c41a', background: 'transparent', fontWeight: 700 }}>Healthy</Tag>
+                      ) : health?.api?.status === 'degraded' ? (
+                        <Tag style={{ border: '1px solid #faad14', color: '#faad14', background: 'transparent', fontWeight: 700 }}>Degraded</Tag>
+                      ) : (
+                        <Tag style={{ border: '1px solid #f5222d', color: '#f5222d', background: 'transparent', fontWeight: 700 }}>Down</Tag>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             }
             bordered={false}
           >
-            <Space direction="vertical" style={{ width: '100%' }} size="large">
-              <div>
-                <div style={{ marginBottom: 8, fontWeight: 500, color: '#666' }}>CPU Usage</div>
-                <Progress 
-                  percent={45} 
-                  status="active" 
-                  strokeColor={{ from: theme.colors.blueNova, to: theme.colors.orange }}
-                  trailColor="#f0f0f0"
-                />
-              </div>
-              <div>
-                <div style={{ marginBottom: 8, fontWeight: 500, color: '#666' }}>Memory Usage</div>
-                <Progress 
-                  percent={68} 
-                  status="active"
-                  strokeColor={{ from: theme.colors.orange, to: theme.colors.accent5 }}
-                  trailColor="#f0f0f0"
-                />
-              </div>
-              <div>
-                <div style={{ marginBottom: 8, fontWeight: 500, color: '#666' }}>Storage Usage</div>
-                <Progress 
-                  percent={32} 
-                  status="active"
-                  strokeColor={{ from: theme.colors.hyperlink, to: theme.colors.blueNova }}
-                  trailColor="#f0f0f0"
-                />
-              </div>
-            </Space>
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#666', marginBottom: 8 }}>Agents</div>
+              <List
+                size="small"
+                dataSource={health?.agents ?? []}
+                locale={{ emptyText: 'No agents reported' }}
+                renderItem={(item) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={<Avatar icon={<RobotOutlined />} />}
+                      title={<span style={{ fontWeight: 600 }}>{item.name}</span>}
+                      description={<span style={{ color: '#888' }}>Last seen: {item.lastSeen ? new Date(item.lastSeen).toLocaleString() : '—'}</span>}
+                    />
+                    <div>
+                      {item.status === 'running' ? (
+                        <Tag icon={<SyncOutlined spin />} color="processing">Running</Tag>
+                      ) : item.status === 'stopped' ? (
+                        <Tag color="default">Stopped</Tag>
+                      ) : (
+                        <Tag color="error">{item.status}</Tag>
+                      )}
+                    </div>
+                  </List.Item>
+                )}
+              />
+            </div>
+
+            <Divider style={{ margin: '12px 0' }} />
+
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#666', marginBottom: 8 }}>Integrations</div>
+              <Row gutter={[8, 8]}>
+                {(health?.integrations ?? []).map((intg) => (
+                  <Col key={intg.id} span={24}>
+                    <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                      <Space>
+                        {/* Use SVG icons placed in `public/icons/` (e.g. kafka.svg, iceberg.svg, pdf.svg) */}
+                        <Avatar src={`/icons/${intg.id}.png`}>
+                          {intg.name?.charAt(0)}
+                        </Avatar>
+                        <div>
+                          <div style={{ fontWeight: 600 }}>{intg.name}</div>
+                          <div style={{ fontSize: 12, color: '#888' }}>
+                            {intg.details ? Object.entries(intg.details).map(([k, v]) => `${k}: ${v}`).join(' · ') : ''}
+                          </div>
+                        </div>
+                      </Space>
+                    </Space>
+                  </Col>
+                ))}
+              </Row>
+            </div>
           </Card>
         </Col>
       </Row>
