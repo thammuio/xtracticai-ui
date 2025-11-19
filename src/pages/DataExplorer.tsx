@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, Input, Button, Table, Tag, Space, Select, Row, Col, message } from 'antd';
-import { Bubble, Sender, Welcome, useXAgent, useXChat } from '@ant-design/x';
+import { Bubble, Sender, useXAgent, useXChat } from '@ant-design/x';
 import {
   SearchOutlined,
   DownloadOutlined,
@@ -11,8 +11,9 @@ import {
   LineChartOutlined,
   SyncOutlined,
   DatabaseOutlined,
-  EyeOutlined,
+  MessageOutlined,
   FundOutlined,
+  LineOutlined,
 } from '@ant-design/icons';
 import { theme } from '../theme';
 
@@ -332,49 +333,88 @@ const DataExplorer = () => {
                 height: 600, 
                 display: 'flex', 
                 flexDirection: 'column',
-                background: `linear-gradient(to bottom, ${theme.colors.blueNova}08 0%, rgba(255,255,255,0) 100%)`,
                 borderRadius: 12,
-                padding: 16
               }}>
-              <div style={{ flex: 1, overflow: 'auto', marginBottom: 16 }}>
+              <div style={{ 
+                flex: 1, 
+                overflow: 'auto', 
+                marginBottom: 16,
+                padding: '16px',
+                background: '#fafafa'
+              }}>
                 {messages.length === 0 ? (
-                  <Welcome
-                    variant="borderless"
-                    icon={<RobotOutlined style={{ fontSize: 56, color: theme.colors.blueNova }} />}
-                    title={<span style={{ fontSize: 20, fontWeight: 600 }}>AI Data Assistant</span>}
-                    description="Ask me anything about your datasets. I can help you query, analyze, and understand your data."
-                    extra={
-                      <Space direction="vertical" style={{ width: '100%' }}>
-                        <Button 
-                          size="large"
-                          icon={<EyeOutlined />}
-                          style={{ 
-                            width: '100%',
-                            borderRadius: 8,
-                            background: `linear-gradient(135deg, ${theme.colors.blueNova} 0%, ${theme.colors.orange} 100%)`,
-                            border: 'none',
-                            color: 'white',
-                            fontWeight: 600
-                          }}
-                          onClick={() => onRequest('show me the latest data')}
-                        >
-                          Show latest data
-                        </Button>
-                        <Button 
-                          size="large"
-                          icon={<FundOutlined />}
-                          style={{ 
-                            width: '100%',
-                            borderRadius: 8,
-                            fontWeight: 600
-                          }}
-                          onClick={() => onRequest('how many records')}
-                        >
-                          How many records?
-                        </Button>
-                      </Space>
-                    }
-                  />
+                  <div style={{ 
+                    padding: '60px 20px',
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%'
+                  }}>
+                    <RobotOutlined style={{ 
+                      fontSize: 64, 
+                      color: theme.colors.blueNova,
+                      marginBottom: 24,
+                      opacity: 0.8
+                    }} />
+                    <div style={{ 
+                      fontSize: 16,
+                      fontWeight: 600,
+                      color: '#333',
+                      marginBottom: 12
+                    }}>
+                      Ask me anything about your data
+                    </div>
+                    <div style={{ 
+                      fontSize: 14,
+                      lineHeight: '22px',
+                      color: '#666',
+                      marginBottom: 24
+                    }}>
+                      I can help you query, analyze, and understand your datasets
+                    </div>
+                    <div style={{ 
+                      background: 'white',
+                      borderRadius: 12,
+                      padding: '20px 24px',
+                      border: `1px solid ${theme.colors.pewter}`,
+                      textAlign: 'left',
+                      maxWidth: 320
+                    }}>
+                      <div style={{ 
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: '#888',
+                        marginBottom: 12,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                        Try asking:
+                      </div>
+                      <div style={{ 
+                        fontSize: 14,
+                        lineHeight: '32px',
+                        color: '#555',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <MessageOutlined style={{ color: theme.colors.blueNova, fontSize: 16 }} />
+                          <span>"Show me the latest data"</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <FundOutlined style={{ color: theme.colors.orange, fontSize: 16 }} />
+                          <span>"How many records do we have?"</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <LineOutlined style={{ color: theme.colors.hyperlink, fontSize: 16 }} />
+                          <span>"What's the average word count?"</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   <Bubble.List
                     items={messages.map((msg: any) => ({
@@ -394,6 +434,11 @@ const DataExplorer = () => {
                 }}
                 placeholder="Ask about your data..."
                 loading={messages.length > 0 && messages[messages.length - 1].status === 'loading'}
+                style={{
+                  borderRadius: 8,
+                  border: `1px solid ${theme.colors.pewter}`,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                }}
               />
             </div>
           </Card>
