@@ -50,35 +50,42 @@ function AppContent() {
 
   const MenuContent = () => (
     <>
-      <div style={{ 
-        height: 80, 
-        margin: 16, 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: `linear-gradient(135deg, ${theme.colors.blueNova}22 0%, ${theme.colors.orange}22 100%)`,
-        borderRadius: 12,
-        padding: '12px'
-      }}>
-        <img 
-          src="/xtractic-ai4.png" 
-          alt="Xtractic AI" 
-          style={{ 
-            height: 40,
-            width: 'auto',
-            objectFit: 'contain'
-          }} 
-        />
-        <span style={{ 
-          color: 'white',
-          fontSize: 14,
-          fontWeight: 600,
-          marginTop: 4
-        }}>
-          Xtractic AI
-        </span>
-      </div>
+      <Link to="/" style={{ textDecoration: 'none' }}>
+        <div style={{ 
+          height: 80, 
+          margin: 16, 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: `linear-gradient(135deg, ${theme.colors.blueNova}22 0%, ${theme.colors.orange}22 100%)`,
+          borderRadius: 12,
+          padding: '12px',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          <img 
+            src="/xtractic-ai4.png" 
+            alt="Xtractic AI" 
+            style={{ 
+              height: 40,
+              width: 'auto',
+              objectFit: 'contain'
+            }} 
+          />
+          <span style={{ 
+            color: 'white',
+            fontSize: 14,
+            fontWeight: 600,
+            marginTop: 4
+          }}>
+            Xtractic AI
+          </span>
+        </div>
+      </Link>
       <Menu
         theme="dark"
         mode="inline"
@@ -158,28 +165,32 @@ function AppContent() {
                 display: 'none'
               }} 
             />
-            <img 
-              src="/xtractic-ai4.png" 
-              alt="Xtractic AI" 
-              className="mobile-logo"
-              style={{ 
-                height: 32,
-                width: 'auto',
-                objectFit: 'contain',
-                display: 'none'
-              }} 
-            />
-            <span 
-              className="mobile-logo-text"
-              style={{ 
-                color: theme.colors.twilight,
-                fontSize: 16,
-                fontWeight: 600,
-                display: 'none'
-              }}
-            >
-              Xtractic AI
-            </span>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+              <img 
+                src="/xtractic-ai4.png" 
+                alt="Xtractic AI" 
+                className="mobile-logo"
+                style={{ 
+                  height: 32,
+                  width: 'auto',
+                  objectFit: 'contain',
+                  display: 'none',
+                  cursor: 'pointer'
+                }} 
+              />
+              <span 
+                className="mobile-logo-text"
+                style={{ 
+                  color: theme.colors.twilight,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  display: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Xtractic AI
+              </span>
+            </Link>
           </div>
 
           {/* Desktop Title */}

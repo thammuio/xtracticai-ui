@@ -239,4 +239,78 @@
     min-width: 44px;
     min-height: 44px;
   }
+
+  /* DataExplorer mobile optimizations */
+  .dataset-select {
+    width: 140px !important;
+  }
+
+  .dataset-select .select-text {
+    display: none;
+  }
+
+  .export-btn .btn-text {
+    display: none;
+  }
+
+  .card-extra-controls {
+    gap: 8px !important;
+  }
+
+  /* AI Assistant mobile adjustments */
+  .ai-assistant-card .ant-card-body {
+    padding: 8px !important;
+  }
+
+  .ai-chat-container {
+    height: 400px !important;
+    padding: 8px !important;
+  }
+
+  /* Make button text in AI assistant smaller */
+  .ai-chat-container .ant-btn {
+    font-size: 13px !important;
+    padding: 4px 8px !important;
+  }
 }
+
+/* Additional mobile improvements for very small screens */
+@media (max-width: 576px) {
+  /* Further optimize dataset selector and export button */
+  .dataset-select {
+    width: 48px !important;
+  }
+
+  .dataset-select .ant-select-selector {
+    padding: 0 8px !important;
+  }
+
+  .export-btn {
+    min-width: 44px !important;
+    padding: 4px 12px !important;
+  }
+
+  /* Compact AI chat on small screens */
+  .ai-chat-container {
+    height: 350px !important;
+    padding: 4px !important;
+  }
+
+  .ai-chat-container .ant-btn {
+    font-size: 12px !important;
+    min-height: 40px !important;
+  }
+
+  /* Stack card extras on very small screens */
+  .ant-card-head-wrapper {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .card-extra-controls {
+    width: 100%;
+    justify-content: flex-start !important;
+    margin-top: 8px;
+  }
+}
+

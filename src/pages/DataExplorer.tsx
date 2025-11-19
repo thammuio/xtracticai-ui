@@ -181,35 +181,35 @@ const DataExplorer = () => {
             }
             bordered={false}
             extra={
-              <Space>
+              <Space wrap className="card-extra-controls">
                 <Select
                   value={selectedDataset}
-                  style={{ width: 200 }}
+                  className="dataset-select"
                   onChange={handleDatasetChange}
                   size="large"
                 >
                   <Option value="processed_pdfs">
                     <Space>
                       <FileTextOutlined />
-                      Processed PDFs
+                      <span className="select-text">Processed PDFs</span>
                     </Space>
                   </Option>
                   <Option value="etl_logs">
                     <Space>
                       <LineChartOutlined />
-                      ETL Logs
+                      <span className="select-text">ETL Logs</span>
                     </Space>
                   </Option>
                   <Option value="transformed_data">
                     <Space>
                       <SyncOutlined />
-                      Transformed Data
+                      <span className="select-text">Transformed Data</span>
                     </Space>
                   </Option>
                   <Option value="raw_data">
                     <Space>
                       <DatabaseOutlined />
-                      Raw Data
+                      <span className="select-text">Raw Data</span>
                     </Space>
                   </Option>
                 </Select>
@@ -218,12 +218,13 @@ const DataExplorer = () => {
                   icon={<DownloadOutlined />}
                   onClick={handleExportAll}
                   size="large"
+                  className="export-btn"
                   style={{
                     borderRadius: 8,
                     fontWeight: 600
                   }}
                 >
-                  Export All
+                  <span className="btn-text">Export All</span>
                 </Button>
               </Space>
             }
@@ -255,8 +256,8 @@ const DataExplorer = () => {
             style={{ marginTop: 16 }}
             bordered={false}
           >
-            <Row gutter={16}>
-              <Col span={8}>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={8}>
                 <div style={{ 
                   textAlign: 'center', 
                   padding: 20,
@@ -275,7 +276,7 @@ const DataExplorer = () => {
                   <div style={{ color: '#666', fontWeight: 500, marginTop: 8 }}>Total Records</div>
                 </div>
               </Col>
-              <Col span={8}>
+              <Col xs={24} sm={8}>
                 <div style={{ 
                   textAlign: 'center', 
                   padding: 20,
@@ -292,7 +293,7 @@ const DataExplorer = () => {
                   <div style={{ color: '#666', fontWeight: 500, marginTop: 8 }}>Total Words</div>
                 </div>
               </Col>
-              <Col span={8}>
+              <Col xs={24} sm={8}>
                 <div style={{ 
                   textAlign: 'center', 
                   padding: 20,
@@ -323,15 +324,18 @@ const DataExplorer = () => {
             }
             style={{ height: '100%' }}
             bordered={false}
+            className="ai-assistant-card"
           >
-            <div style={{ 
-              height: 600, 
-              display: 'flex', 
-              flexDirection: 'column',
-              background: `linear-gradient(to bottom, ${theme.colors.blueNova}08 0%, rgba(255,255,255,0) 100%)`,
-              borderRadius: 12,
-              padding: 16
-            }}>
+            <div 
+              className="ai-chat-container"
+              style={{ 
+                height: 600, 
+                display: 'flex', 
+                flexDirection: 'column',
+                background: `linear-gradient(to bottom, ${theme.colors.blueNova}08 0%, rgba(255,255,255,0) 100%)`,
+                borderRadius: 12,
+                padding: 16
+              }}>
               <div style={{ flex: 1, overflow: 'auto', marginBottom: 16 }}>
                 {messages.length === 0 ? (
                   <Welcome
