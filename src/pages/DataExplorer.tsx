@@ -7,6 +7,12 @@ import {
   TableOutlined,
   BarChartOutlined,
   RobotOutlined,
+  FileTextOutlined,
+  LineChartOutlined,
+  SyncOutlined,
+  DatabaseOutlined,
+  EyeOutlined,
+  FundOutlined,
 } from '@ant-design/icons';
 import { theme } from '../theme';
 
@@ -182,10 +188,30 @@ const DataExplorer = () => {
                   onChange={handleDatasetChange}
                   size="large"
                 >
-                  <Option value="processed_pdfs">📄 Processed PDFs</Option>
-                  <Option value="etl_logs">📊 ETL Logs</Option>
-                  <Option value="transformed_data">🔄 Transformed Data</Option>
-                  <Option value="raw_data">💾 Raw Data</Option>
+                  <Option value="processed_pdfs">
+                    <Space>
+                      <FileTextOutlined />
+                      Processed PDFs
+                    </Space>
+                  </Option>
+                  <Option value="etl_logs">
+                    <Space>
+                      <LineChartOutlined />
+                      ETL Logs
+                    </Space>
+                  </Option>
+                  <Option value="transformed_data">
+                    <Space>
+                      <SyncOutlined />
+                      Transformed Data
+                    </Space>
+                  </Option>
+                  <Option value="raw_data">
+                    <Space>
+                      <DatabaseOutlined />
+                      Raw Data
+                    </Space>
+                  </Option>
                 </Select>
                 <Button
                   type="primary"
@@ -317,6 +343,7 @@ const DataExplorer = () => {
                       <Space direction="vertical" style={{ width: '100%' }}>
                         <Button 
                           size="large"
+                          icon={<EyeOutlined />}
                           style={{ 
                             width: '100%',
                             borderRadius: 8,
@@ -327,10 +354,11 @@ const DataExplorer = () => {
                           }}
                           onClick={() => onRequest('show me the latest data')}
                         >
-                          🔍 Show latest data
+                          Show latest data
                         </Button>
                         <Button 
                           size="large"
+                          icon={<FundOutlined />}
                           style={{ 
                             width: '100%',
                             borderRadius: 8,
@@ -338,7 +366,7 @@ const DataExplorer = () => {
                           }}
                           onClick={() => onRequest('how many records')}
                         >
-                          📊 How many records?
+                          How many records?
                         </Button>
                       </Space>
                     }

@@ -7,6 +7,9 @@ import {
   SyncOutlined,
   FileTextOutlined,
   DatabaseOutlined,
+  BarChartOutlined,
+  HeartOutlined,
+  FileSearchOutlined,
 } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { workflowService } from '../services/api';
@@ -193,9 +196,10 @@ const Dashboard = () => {
         <Col xs={24} lg={16}>
           <Card 
             title={
-              <span style={{ fontSize: 16, fontWeight: 600 }}>
-                📊 Workflow Activity
-              </span>
+              <Space>
+                <BarChartOutlined style={{ color: theme.colors.blueNova, fontSize: 18 }} />
+                <span style={{ fontSize: 16, fontWeight: 600 }}>Workflow Activity</span>
+              </Space>
             }
             bordered={false}
           >
@@ -221,9 +225,10 @@ const Dashboard = () => {
         <Col xs={24} lg={8}>
           <Card 
             title={
-              <span style={{ fontSize: 16, fontWeight: 600 }}>
-                💚 System Health
-              </span>
+              <Space>
+                <HeartOutlined style={{ color: '#52c41a', fontSize: 18 }} />
+                <span style={{ fontSize: 16, fontWeight: 600 }}>System Health</span>
+              </Space>
             }
             bordered={false}
           >
@@ -262,9 +267,10 @@ const Dashboard = () => {
 
       <Card 
         title={
-          <span style={{ fontSize: 16, fontWeight: 600 }}>
-            📋 Recent Workflows
-          </span>
+          <Space>
+            <FileSearchOutlined style={{ color: theme.colors.orange, fontSize: 18 }} />
+            <span style={{ fontSize: 16, fontWeight: 600 }}>Recent Workflows</span>
+          </Space>
         }
         loading={loading}
         bordered={false}

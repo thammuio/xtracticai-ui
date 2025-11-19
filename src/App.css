@@ -56,18 +56,54 @@
   border-right: 3px solid var(--color-orange);
 }
 
+/* Desktop Sidebar - Hide on Mobile */
+.desktop-sider {
+  display: block;
+}
+
+/* Mobile Drawer - Hidden by default */
+.mobile-drawer {
+  display: block;
+}
+
+/* Mobile Menu Icon and Logo - Hidden by default */
+.mobile-menu-icon,
+.mobile-logo,
+.mobile-logo-text {
+  display: none !important;
+}
+
+/* Desktop Header Elements */
+.header-title {
+  display: block;
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 992px) {
+  /* Hide desktop sidebar on tablets and mobile */
+  .desktop-sider {
+    display: none !important;
+  }
+  
+  /* Show mobile menu icon and logo */
+  .mobile-menu-icon,
+  .mobile-logo,
+  .mobile-logo-text {
+    display: block !important;
+  }
+  
+  /* Hide desktop header title on tablets */
+  .header-title {
+    display: none !important;
+  }
+  
   .main-layout {
     margin-left: 0 !important;
   }
   
   .main-header {
-    padding: 0 12px !important;
-  }
-  
-  .header-title {
-    font-size: 16px !important;
+    padding: 0 16px !important;
+    height: 64px;
   }
   
   .main-content {
@@ -78,20 +114,30 @@
     padding: 16px !important;
     border-radius: 8px !important;
   }
+
+  /* Adjust header actions spacing */
+  .header-actions {
+    gap: 16px !important;
+  }
 }
 
 @media (max-width: 768px) {
-  .header-title {
-    font-size: 14px !important;
-    display: none;
-  }
-  
   .main-content {
     margin: 12px 8px 0 !important;
   }
   
   .content-container {
     padding: 12px !important;
+  }
+
+  /* Further reduce header actions on small mobile */
+  .header-actions {
+    gap: 12px !important;
+  }
+
+  /* Hide settings icon on very small screens */
+  .desktop-icon {
+    display: none !important;
   }
   
   /* Make stat cards stack on mobile */
