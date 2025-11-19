@@ -323,8 +323,12 @@ const DataExplorer = () => {
                 <span style={{ fontSize: 16, fontWeight: 600 }}>AI Assistant</span>
               </Space>
             }
-            style={{ height: '100%' }}
-            bordered={false}
+            style={{ 
+              height: '100%',
+              border: `2px solid ${theme.colors.blueNova}`,
+              boxShadow: `0 4px 16px ${theme.colors.blueNova}33`
+            }}
+            bordered={true}
             className="ai-assistant-card"
           >
             <div 

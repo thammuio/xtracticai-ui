@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Layout, Menu, Badge, Avatar, ConfigProvider, Drawer } from 'antd';
+import { Layout, Menu, Badge, Avatar, ConfigProvider, Drawer, Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
 import {
   DashboardOutlined,
   ApiOutlined,
   DatabaseOutlined,
   BellOutlined,
   SettingOutlined,
-  UserOutlined,
   MenuOutlined,
+  LogoutOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import Dashboard from './pages/Dashboard';
 import WorkflowOrchestration from './pages/WorkflowOrchestration';
 import DataExplorer from './pages/DataExplorer';
+import Login from './pages/Login';
 import theme from './theme';
 import './App.css';
 
@@ -39,6 +42,9 @@ const menuItems = [
 function AppContent() {
   const location = useLocation();
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
 
   const showDrawer = () => {
     setDrawerVisible(true);
@@ -47,6 +53,37 @@ function AppContent() {
   const closeDrawer = () => {
     setDrawerVisible(false);
   };
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    localStorage.setItem('isLoggedIn', 'true');
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem('isLoggedIn');
+  };
+
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: 'Profile',
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Logout',
+      onClick: handleLogout,
+    },
+  ];
 
   const MenuContent = () => (
     <>
@@ -208,7 +245,9 @@ function AppContent() {
               <BellOutlined style={{ fontSize: 20, cursor: 'pointer', color: theme.colors.twilight }} />
             </Badge>
             <SettingOutlined className="desktop-icon" style={{ fontSize: 20, cursor: 'pointer', color: theme.colors.twilight }} />
-            <Avatar icon={<UserOutlined />} style={{ cursor: 'pointer', backgroundColor: theme.colors.blueNova }} />
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
+              <Avatar src="/suri.jpg" style={{ cursor: 'pointer' }} />
+            </Dropdown>
           </div>
         </Header>
         <Content className="main-content" style={{ margin: '24px 16px 0', overflow: 'initial' }}>
