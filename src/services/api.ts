@@ -86,7 +86,7 @@ export const uploadService = {
   // Submit workflow with PDF URL and query
   submitWorkflow: async (uploadedFileUrl: string, query: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/workflows/submit`, {
+      const response = await fetch(`${API_BASE_URL}/api/workflows/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ export const workflowService = {
   // Get deployed agents/workflows
   getDeployedAgents: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/workflows/deployed`);
+      const response = await fetch(`${API_BASE_URL}/api/workflows/deployed`);
       if (!response.ok) {
         throw new Error('Failed to fetch deployed agents');
       }
