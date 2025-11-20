@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Statistic, Table, Tag, Space, List, Avatar, Divider } from 'antd';
+import { Row, Col, Card, Statistic, Table, Tag, Space, List, Avatar, Divider, Button } from 'antd';
 import {
   ClockCircleOutlined,
   CheckCircleOutlined,
@@ -11,6 +11,9 @@ import {
   HeartOutlined,
   FileSearchOutlined,
   RobotOutlined,
+  LinkOutlined,
+  UserOutlined,
+  CloudServerOutlined,
 } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { workflowService, healthService } from '../services/api';
@@ -49,6 +52,43 @@ interface ApiHealth {
   version: string;
 }
 
+interface DeployedAgent {
+  id: string;
+  name: string;
+  description: string;
+  subdomain: string;
+  status: string;
+  url: string;
+  creator: {
+    username: string;
+    name: string;
+    email: string;
+  };
+  created_at: string;
+  updated_at: string;
+  running_at: string | null;
+  stopped_at: string | null;
+  resources: {
+    cpu: number;
+    memory: number;
+    gpu: number;
+  };
+  is_workflow: boolean;
+  project_id: string;
+  workflow_id: string | null;
+  model_id: string | null;
+  render_mode: string | null;
+}
+
+interface DeployedAgentsResponse {
+  success: boolean;
+  data: DeployedAgent[];
+  count: number;
+  workflow_count?: number;
+  running_count?: number;
+  message: string;
+}
+
 const Dashboard = () => {
   const [stats, setStats] = useState<WorkflowStats>({
     total: 0,
@@ -60,11 +100,14 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [health, setHealth] = useState<HealthSummary | null>(null);
   const [apiHealth, setApiHealth] = useState<ApiHealth | null>(null);
+  const [deployedAgents, setDeployedAgents] = useState<DeployedAgent[]>([]);
+  const [agentsLoading, setAgentsLoading] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
     loadHealth();
     loadApiHealth();
+    loadDeployedAgents();
   }, []);
 
   const loadDashboardData = async () => {
@@ -100,6 +143,20 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Failed to load API health:', error);
       setApiHealth({ status: 'unhealthy', version: 'unknown' });
+    }
+  };
+
+  const loadDeployedAgents = async () => {
+    setAgentsLoading(true);
+    try {
+      const response = await workflowService.getDeployedAgents() as DeployedAgentsResponse;
+      if (response.success) {
+        setDeployedAgents(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to load deployed agents:', error);
+    } finally {
+      setAgentsLoading(false);
     }
   };
 
@@ -235,29 +292,72 @@ const Dashboard = () => {
           <Card 
             title={
               <Space>
-                <BarChartOutlined style={{ color: theme.colors.blueNova, fontSize: 18 }} />
-                <span style={{ fontSize: 16, fontWeight: 600 }}>Workflow Activity</span>
+                <CloudServerOutlined style={{ color: theme.colors.blueNova, fontSize: 18 }} />
+                <span style={{ fontSize: 16, fontWeight: 600 }}>Deployed Agents</span>
               </Space>
             }
+            loading={agentsLoading}
             bordered={false}
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip 
-                  contentStyle={{ 
-                    borderRadius: 8, 
-                    border: 'none',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                  }} 
-                />
-                <Legend />
-                <Bar dataKey="workflows" fill={theme.colors.blueNova} name="Workflows" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="records" fill={theme.colors.orange} name="Records Processed" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <List
+              dataSource={deployedAgents}
+              locale={{ emptyText: 'No deployed agents found' }}
+              renderItem={(agent) => (
+                <List.Item
+                  actions={[
+                    <Button
+                      type="link"
+                      icon={<LinkOutlined />}
+                      href={agent.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Open
+                    </Button>,
+                  ]}
+                >
+                  <List.Item.Meta
+                    avatar={
+                      <Avatar
+                        style={{
+                          backgroundColor: agent.is_workflow ? theme.colors.blueNova : theme.colors.orange,
+                        }}
+                        icon={agent.is_workflow ? <FileTextOutlined /> : <RobotOutlined />}
+                      />
+                    }
+                    title={
+                      <Space>
+                        <span style={{ fontWeight: 600 }}>
+                          {agent.name.replace(/^Workflow:\s*/, '').replace(/_[a-zA-Z0-9]+$/, ' Agent')}
+                        </span>
+                        {agent.status === 'APPLICATION_RUNNING' ? (
+                          <Tag icon={<CheckCircleOutlined />} color="success">
+                            Running
+                          </Tag>
+                        ) : (
+                          <Tag color="default">Stopped</Tag>
+                        )}
+                      </Space>
+                    }
+                    description={
+                      <div>
+                        <div style={{ marginBottom: 4 }}>{agent.description}</div>
+                        <Space size="small" style={{ fontSize: 12, color: '#888' }}>
+                          <UserOutlined />
+                          <span>{agent.creator.name}</span>
+                          <span>•</span>
+                          <span>CPU: {agent.resources.cpu}</span>
+                          <span>•</span>
+                          <span>Memory: {agent.resources.memory}GB</span>
+                          <span>•</span>
+                          <span>Created: {new Date(agent.created_at).toLocaleDateString()}</span>
+                        </Space>
+                      </div>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
           </Card>
         </Col>
         <Col xs={24} lg={8}>
@@ -340,6 +440,38 @@ const Dashboard = () => {
                 ))}
               </Row>
             </div>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col xs={24}>
+          <Card 
+            title={
+              <Space>
+                <BarChartOutlined style={{ color: theme.colors.blueNova, fontSize: 18 }} />
+                <span style={{ fontSize: 16, fontWeight: 600 }}>Workflow Activity</span>
+              </Space>
+            }
+            bordered={false}
+          >
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip 
+                  contentStyle={{ 
+                    borderRadius: 8, 
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  }} 
+                />
+                <Legend />
+                <Bar dataKey="workflows" fill={theme.colors.blueNova} name="Workflows" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="records" fill={theme.colors.orange} name="Records Processed" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </Card>
         </Col>
       </Row>

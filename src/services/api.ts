@@ -86,6 +86,20 @@ export const uploadService = {
 
 // Workflow API
 export const workflowService = {
+  // Get deployed agents/workflows
+  getDeployedAgents: async () => {
+    try {
+      const response = await fetch('https://xtractic-api.ml-d248e68a-04a.se-sandb.a465-9q4k.cloudera.site/api/workflows/deployed');
+      if (!response.ok) {
+        throw new Error('Failed to fetch deployed agents');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching deployed agents:', error);
+      return { success: false, data: [], count: 0, message: 'Failed to fetch deployed agents' };
+    }
+  },
+
   // Get all workflows
   getWorkflows: async () => {
     return apiClient.get('/workflows');
