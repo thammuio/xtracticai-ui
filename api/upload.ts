@@ -1,31 +1,38 @@
 import { put } from '@vercel/blob';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import formidable from 'formidable';
+import { readFileSync } from 'fs';
 
+// Disable body parsing, we'll handle it with formidable
 export const config = {
-  runtime: 'edge',
+  api: {
+    bodyParser: false,
+  },
 };
 
-export default async function handler(req: Request) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     console.log('Upload request received');
-    const formData = await req.formData();
-    const file = formData.get('file') as File;
-
-    if (!file) {
+    
+    // Parse form data with formidable
+    const form = formidable({});
+    const [fields, files] = await form.parse(req);
+    
+    const fileArray = files.file;
+    if (!fileArray || fileArray.length === 0) {
       console.log('No file provided in request');
-      return new Response(JSON.stringify({ error: 'No file provided' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(400).json({ error: 'No file provided' });
     }
 
-    console.log('File received:', file.name, 'Size:', file.size);
+    const file = fileArray[0];
+    console.log('File received:', file.originalFilename, 'Size:', file.size);
+
+    // Read file buffer
+    const fileBuffer = readFileSync(file.filepath);
 
     // Get environment variables
     const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
@@ -38,24 +45,22 @@ export default async function handler(req: Request) {
     
     if (!blobToken) {
       console.error('BLOB_READ_WRITE_TOKEN not found in environment');
-      return new Response(JSON.stringify({ error: 'BLOB_READ_WRITE_TOKEN not configured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(500).json({ error: 'BLOB_READ_WRITE_TOKEN not configured' });
     }
 
-    // Upload to Vercel Blob in configured directory
+    // Upload to Vercel Blob
     console.log('Uploading to Vercel Blob...');
-    const blob = await put(`${directory}/${file.name}`, file, {
+    const blob = await put(`${directory}/${file.originalFilename}`, fileBuffer, {
       access: 'public',
       token: blobToken,
+      contentType: file.mimetype || 'application/pdf',
     });
 
     console.log('Upload successful:', blob.url);
 
-    return new Response(JSON.stringify({
+    return res.status(200).json({
       url: blob.url,
-      filename: file.name,
+      filename: file.originalFilename,
       pathname: blob.pathname,
       size: file.size,
       uploadedAt: new Date().toISOString(),
@@ -63,15 +68,13 @@ export default async function handler(req: Request) {
       baseUrl: baseUrl,
       region: region,
       contentType: blob.contentType,
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
     console.error('Upload error:', error);
-    return new Response(JSON.stringify({ error: 'Upload failed', message: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
+    return res.status(500).json({ 
+      error: 'Upload failed', 
+      message: error.message,
+      details: error.toString()
     });
   }
 }
