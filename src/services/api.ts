@@ -80,7 +80,7 @@ export const uploadService = {
 
   // Submit PDF URL to workflow API
   submitUploadedFileUrl: async (uploadedFileUrl: string) => {
-    return apiClient.post('/workflows', { uploaded_file_url: uploadedFileUrl });
+    return apiClient.post('/api/workflows', { uploaded_file_url: uploadedFileUrl });
   },
 
   // Submit workflow with PDF URL and query
@@ -127,43 +127,43 @@ export const workflowService = {
 
   // Get all workflows
   getWorkflows: async () => {
-    return apiClient.get('/workflows');
+    return apiClient.get('/api/workflows');
   },
 
   // Get workflow by ID
   getWorkflow: async (id: string) => {
-    return apiClient.get(`/workflows/${id}`);
+    return apiClient.get(`/api/workflows/${id}`);
   },
 
   // Create new workflow
   createWorkflow: async (workflow: any) => {
-    return apiClient.post('/workflows', workflow);
+    return apiClient.post('/api/workflows', workflow);
   },
 
   // Update workflow
   updateWorkflow: async (id: string, workflow: any) => {
-    return apiClient.put(`/workflows/${id}`, workflow);
+    return apiClient.put(`/api/workflows/${id}`, workflow);
   },
 
   // Delete workflow
   deleteWorkflow: async (id: string) => {
-    return apiClient.delete(`/workflows/${id}`);
+    return apiClient.delete(`/api/workflows/${id}`);
   },
 
   // Start workflow execution
   startWorkflow: async (id: string) => {
-    return apiClient.post(`/workflows/${id}/start`);
+    return apiClient.post(`/api/workflows/${id}/start`);
   },
 
   // Stop workflow execution
   stopWorkflow: async (id: string) => {
-    return apiClient.post(`/workflows/${id}/stop`);
+    return apiClient.post(`/api/workflows/${id}/stop`);
   },
 
   // Get workflow statistics
   getStats: async () => {
     try {
-      return await apiClient.get('/workflows/stats');
+      return await apiClient.get('/api/workflows/stats');
     } catch (error) {
       // Return mock data for development
       return {
@@ -178,7 +178,7 @@ export const workflowService = {
   // Get recent workflows
   getRecentWorkflows: async () => {
     try {
-      return await apiClient.get('/workflows/recent');
+      return await apiClient.get('/api/workflows/recent');
     } catch (error) {
       // Return mock data for development
       return [
@@ -215,7 +215,7 @@ export const workflowService = {
 export const dataService = {
   // Get datasets list
   getDatasets: async () => {
-    return apiClient.get('/datasets');
+    return apiClient.get('/api/datasets');
   },
 
   // Get dataset by name
@@ -225,12 +225,12 @@ export const dataService = {
 
   // Query dataset with natural language
   queryDataset: async (dataset: string, query: string) => {
-    return apiClient.post(`/datasets/${dataset}/query`, { query });
+    return apiClient.post(`/api/datasets/${dataset}/query`, { query });
   },
 
   // Export dataset
   exportDataset: async (name: string, format: string = 'csv') => {
-    return apiClient.get(`/datasets/${name}/export`, {
+    return apiClient.get(`/api/datasets/${name}/export`, {
       params: { format },
       responseType: 'blob',
     });
@@ -238,7 +238,7 @@ export const dataService = {
 
   // Get dataset statistics
   getDatasetStats: async (name: string) => {
-    return apiClient.get(`/datasets/${name}/stats`);
+    return apiClient.get(`/api/datasets/${name}/stats`);
   },
 };
 
@@ -246,22 +246,22 @@ export const dataService = {
 export const etlService = {
   // Run ETL job
   runETL: async (config: any) => {
-    return apiClient.post('/etl/run', config);
+    return apiClient.post('/api/etl/run', config);
   },
 
   // Get ETL job status
   getJobStatus: async (jobId: string) => {
-    return apiClient.get(`/etl/jobs/${jobId}`);
+    return apiClient.get(`/api/etl/jobs/${jobId}`);
   },
 
   // Get ETL job logs
   getJobLogs: async (jobId: string) => {
-    return apiClient.get(`/etl/jobs/${jobId}/logs`);
+    return apiClient.get(`/api/etl/jobs/${jobId}/logs`);
   },
 
   // Cancel ETL job
   cancelJob: async (jobId: string) => {
-    return apiClient.post(`/etl/jobs/${jobId}/cancel`);
+    return apiClient.post(`/api/etl/jobs/${jobId}/cancel`);
   },
 };
 
@@ -269,17 +269,17 @@ export const etlService = {
 export const aiService = {
   // Chat with AI assistant
   chat: async (message: string, context?: any) => {
-    return apiClient.post('/ai/chat', { message, context });
+    return apiClient.post('/api/ai/chat', { message, context });
   },
 
   // Get data insights
   getInsights: async (dataset: string) => {
-    return apiClient.post('/ai/insights', { dataset });
+    return apiClient.post('/api/ai/insights', { dataset });
   },
 
   // Generate query from natural language
   generateQuery: async (naturalLanguageQuery: string) => {
-    return apiClient.post('/ai/generate-query', { query: naturalLanguageQuery });
+    return apiClient.post('/api/ai/generate-query', { query: naturalLanguageQuery });
   },
 };
 
