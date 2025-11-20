@@ -9,12 +9,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://your-backend-api.com/api/:path*"
-    }
-  ],
-  "routes": [
+    },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
