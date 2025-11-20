@@ -130,9 +130,6 @@ const DataExplorer = () => {
 
         // If we have an uploaded file, call the workflow submit API
         if (uploadedFileUrl && msgText && !msgText.startsWith('📎')) {
-          // Build context message with file info
-          const contextMessage = `File: ${uploadedFileName}\nURL: ${uploadedFileUrl}\n\nQuery: ${msgText}`;
-          
           // Call the workflow submit API
           const result = await uploadService.submitWorkflow(uploadedFileUrl, msgText);
           
