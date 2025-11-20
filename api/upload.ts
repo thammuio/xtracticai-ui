@@ -20,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     // Parse form data with formidable
     const form = formidable({});
-    const [fields, files] = await form.parse(req);
+    const [, files] = await form.parse(req);
     
     const fileArray = files.file;
     if (!fileArray || fileArray.length === 0) {

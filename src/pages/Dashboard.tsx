@@ -81,13 +81,9 @@ const Dashboard = () => {
   };
 
   const loadHealth = async () => {
-    try {
-      const data = await healthService.getSystemHealth();
-      setHealth(data as HealthSummary);
-    } catch (error) {
-      console.error('Failed to load health data', error);
-      setHealth(null);
-    }
+    // The API service handles errors and returns mock data, so we don't need try-catch here
+    const data = await healthService.getSystemHealth();
+    setHealth(data as HealthSummary);
   };
 
   const chartData = [
