@@ -1,8 +1,6 @@
-import { useState } from 'react';
-import { Card, Button, Table, Tag, Space, Modal, Form, Input, Select, Descriptions, Timeline, Steps } from 'antd';
+import { useState, useEffect } from 'react';
+import { Card, Button, Table, Tag, Space, Modal, Form, Input, Select, Descriptions, Timeline, Steps, message } from 'antd';
 import {
-  PlayCircleOutlined,
-  PauseCircleOutlined,
   DeleteOutlined,
   EyeOutlined,
   PlusOutlined,
@@ -12,59 +10,64 @@ import {
   CloudOutlined,
 } from '@ant-design/icons';
 import { theme } from '../theme';
-// import { workflowService } from '../services/api';
+import { uploadService } from '../services/api';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const { Option } = Select;
 const { TextArea } = Input;
 
 interface Workflow {
-  key: string;
-  name: string;
-  type: string;
+  workflow_id: string;
+  workflow_name: string;
+  file_name: string;
+  file_type: string;
   status: string;
-  lastRun: string;
-  nextRun: string;
-  successRate: number;
+  records_extracted: number;
+  last_activity: string;
+  submitted_at: string;
+  file_size_bytes: number | null;
+  processing_duration_ms: number | null;
+  is_successful: boolean | null;
+  error_message: string | null;
 }
 
 const WorkflowOrchestration = () => {
-  const [workflows, setWorkflows] = useState<Workflow[]>([
-    {
-      key: '1',
-      name: 'PDF Document Processing',
-      type: 'pdf',
-      status: 'active',
-      lastRun: '2024-01-15 10:30',
-      nextRun: '2024-01-16 10:30',
-      successRate: 95,
-    },
-    {
-      key: '2',
-      name: 'PostgreSQL Data Sync',
-      type: 'database',
-      status: 'active',
-      lastRun: '2024-01-15 12:00',
-      nextRun: '2024-01-15 18:00',
-      successRate: 98,
-    },
-    {
-      key: '3',
-      name: 'API Data Collection',
-      type: 'api',
-      status: 'paused',
-      lastRun: '2024-01-14 15:45',
-      nextRun: '-',
-      successRate: 87,
-    },
-  ]);
-
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [form] = Form.useForm();
+  const [submitting, setSubmitting] = useState(false);
+
+  // Fetch workflows from API
+  useEffect(() => {
+    fetchWorkflows();
+  }, []);
+
+  const fetchWorkflows = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/workflows/details`);
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        setWorkflows(result.data);
+      } else {
+        message.error('Failed to fetch workflows');
+      }
+    } catch (error) {
+      console.error('Error fetching workflows:', error);
+      message.error('Failed to fetch workflows');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getTypeIcon = (type: string) => {
     const icons: Record<string, React.ReactNode> = {
+      PDF: <FileTextOutlined style={{ color: theme.colors.blueNova }} />,
       pdf: <FileTextOutlined style={{ color: theme.colors.blueNova }} />,
       database: <DatabaseOutlined style={{ color: theme.colors.orange }} />,
       api: <ApiOutlined style={{ color: theme.colors.hyperlink }} />,
@@ -73,60 +76,86 @@ const WorkflowOrchestration = () => {
     return icons[type] || <FileTextOutlined />;
   };
 
+  const formatDateTime = (dateStr: string | null) => {
+    if (!dateStr) return '-';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
   const columns = [
     {
       title: 'Workflow Name',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'workflow_name',
+      key: 'workflow_name',
       render: (text: string, record: Workflow) => (
         <Space>
-          {getTypeIcon(record.type)}
+          {getTypeIcon(record.file_type)}
           {text}
         </Space>
       ),
     },
     {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type: string) => <Tag color="blue">{type.toUpperCase()}</Tag>,
+      title: 'File Name',
+      dataIndex: 'file_name',
+      key: 'file_name',
+    },
+    {
+      title: 'File Type',
+      dataIndex: 'file_type',
+      key: 'file_type',
+      render: (type: string) => <Tag color="blue">{type}</Tag>,
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'active' ? 'green' : 'orange'}>
-          {status.toUpperCase()}
-        </Tag>
-      ),
+      render: (status: string) => {
+        const statusColors: Record<string, string> = {
+          'success': 'green',
+          'in-progress': 'blue',
+          'submitted': 'cyan',
+          'failed': 'red',
+          'error': 'red',
+        };
+        return (
+          <Tag color={statusColors[status.toLowerCase()] || 'default'}>
+            {status.toUpperCase()}
+          </Tag>
+        );
+      },
     },
     {
-      title: 'Last Run',
-      dataIndex: 'lastRun',
-      key: 'lastRun',
+      title: 'Records Extracted',
+      dataIndex: 'records_extracted',
+      key: 'records_extracted',
     },
     {
-      title: 'Next Run',
-      dataIndex: 'nextRun',
-      key: 'nextRun',
+      title: 'Last Activity',
+      dataIndex: 'last_activity',
+      key: 'last_activity',
+      render: (lastActivity: string) => formatDateTime(lastActivity),
     },
     {
-      title: 'Success Rate',
-      dataIndex: 'successRate',
-      key: 'successRate',
-      render: (rate: number) => `${rate}%`,
+      title: 'Submitted At',
+      dataIndex: 'submitted_at',
+      key: 'submitted_at',
+      render: (submittedAt: string) => formatDateTime(submittedAt),
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_: any, record: Workflow) => (
         <Space>
-          <Button
-            type="text"
-            icon={record.status === 'active' ? <PauseCircleOutlined /> : <PlayCircleOutlined />}
-            onClick={() => handleToggleWorkflow(record)}
-          />
           <Button
             type="text"
             icon={<EyeOutlined />}
@@ -136,7 +165,7 @@ const WorkflowOrchestration = () => {
             type="text"
             danger
             icon={<DeleteOutlined />}
-            onClick={() => handleDeleteWorkflow(record.key)}
+            onClick={() => handleDeleteWorkflow(record.workflow_id)}
           />
         </Space>
       ),
@@ -150,20 +179,53 @@ const WorkflowOrchestration = () => {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+      setSubmitting(true);
+
+      // Check if it's a file workflow and has a valid URL
+      if (values.type === 'file' && values.source) {
+        try {
+          // Submit to the workflow API
+          await uploadService.submitWorkflow(
+            values.source,
+            values.description || 'Please process this File'
+          );
+          message.success('Workflow submitted successfully!');
+        } catch (error) {
+          console.error('Error submitting workflow:', error);
+          message.error('Failed to submit workflow. Please try again.');
+          setSubmitting(false);
+          return;
+        }
+      } else if (values.type !== 'file') {
+        message.info(`${values.type.toUpperCase()} workflow saved locally (API integration coming soon)`);
+      }
+
       const newWorkflow: Workflow = {
-        key: Date.now().toString(),
-        name: values.name,
-        type: values.type,
-        status: 'active',
-        lastRun: '-',
-        nextRun: 'Pending',
-        successRate: 0,
+        workflow_id: Date.now().toString(),
+        workflow_name: `${values.type.charAt(0).toUpperCase() + values.type.slice(1)} Workflow - ${new Date().toLocaleString()}`,
+        file_name: values.source.split('/').pop() || 'unknown',
+        file_type: values.type.toUpperCase(),
+        status: 'submitted',
+        records_extracted: 0,
+        last_activity: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
+        file_size_bytes: null,
+        processing_duration_ms: null,
+        is_successful: null,
+        error_message: null,
       };
       setWorkflows([...workflows, newWorkflow]);
       setIsModalOpen(false);
       form.resetFields();
+      setSubmitting(false);
+      
+      // Refresh workflows after submission
+      setTimeout(() => {
+        fetchWorkflows();
+      }, 1000);
     } catch (error) {
       console.error('Validation failed:', error);
+      setSubmitting(false);
     }
   };
 
@@ -172,20 +234,12 @@ const WorkflowOrchestration = () => {
     form.resetFields();
   };
 
-  const handleToggleWorkflow = (workflow: Workflow) => {
-    setWorkflows(workflows.map(w => 
-      w.key === workflow.key 
-        ? { ...w, status: w.status === 'active' ? 'paused' : 'active' }
-        : w
-    ));
-  };
-
-  const handleDeleteWorkflow = (key: string) => {
+  const handleDeleteWorkflow = (workflowId: string) => {
     Modal.confirm({
       title: 'Delete Workflow',
       content: 'Are you sure you want to delete this workflow?',
       onOk: () => {
-        setWorkflows(workflows.filter(w => w.key !== key));
+        setWorkflows(workflows.filter(w => w.workflow_id !== workflowId));
       },
     });
   };
@@ -228,6 +282,8 @@ const WorkflowOrchestration = () => {
         <Table
           columns={columns}
           dataSource={workflows}
+          rowKey="workflow_id"
+          loading={loading}
           pagination={{ pageSize: 10 }}
         />
       </Card>
@@ -238,57 +294,121 @@ const WorkflowOrchestration = () => {
         onOk={handleModalOk}
         onCancel={handleModalCancel}
         width={600}
+        confirmLoading={submitting}
       >
         <Form form={form} layout="vertical">
-          <Form.Item
-            name="name"
-            label="Workflow Name"
-            rules={[{ required: true, message: 'Please input workflow name!' }]}
-          >
-            <Input placeholder="e.g., PDF Document Processing" />
-          </Form.Item>
-
           <Form.Item
             name="type"
             label="Workflow Type"
             rules={[{ required: true, message: 'Please select workflow type!' }]}
           >
-            <Select placeholder="Select workflow type">
-              <Option value="pdf">PDF Processing</Option>
-              <Option value="database">Database ETL</Option>
-              <Option value="api">API Integration</Option>
-              <Option value="cloud">Cloud Storage</Option>
+            <Select placeholder="Select workflow type" size="large">
+              <Option value="file">
+                <Space>
+                  <img src="/icons/pdf.png" alt="File" style={{ width: 20, height: 20 }} />
+                  File Processing
+                </Space>
+              </Option>
+              <Option value="iceberg" disabled>
+                <Space>
+                  <img src="/icons/iceberg.png" alt="Iceberg" style={{ width: 20, height: 20 }} />
+                  Iceberg Processing
+                  <Tag color="orange" style={{ marginLeft: 8 }}>WIP</Tag>
+                </Space>
+              </Option>
+              <Option value="kafka" disabled>
+                <Space>
+                  <img src="/icons/kafka.png" alt="Kafka" style={{ width: 20, height: 20 }} />
+                  Kafka Processing
+                  <Tag color="orange" style={{ marginLeft: 8 }}>WIP</Tag>
+                </Space>
+              </Option>
+              <Option value="database" disabled>
+                <Space>
+                  <img src="/icons/postgres.png" alt="Database" style={{ width: 20, height: 20 }} />
+                  Database ETL
+                  <Tag color="orange" style={{ marginLeft: 8 }}>WIP</Tag>
+                </Space>
+              </Option>
+              <Option value="api" disabled>
+                <Space>
+                  <img src="/icons/internet.png" alt="API" style={{ width: 20, height: 20 }} />
+                  API Integration
+                  <Tag color="orange" style={{ marginLeft: 8 }}>WIP</Tag>
+                </Space>
+              </Option>
+              <Option value="cloud" disabled>
+                <Space>
+                  <img src="/icons/cloudera.png" alt="Cloud" style={{ width: 20, height: 20 }} />
+                  Cloud Storage
+                  <Tag color="orange" style={{ marginLeft: 8 }}>WIP</Tag>
+                </Space>
+              </Option>
             </Select>
           </Form.Item>
 
           <Form.Item
             name="source"
-            label="Data Source"
-            rules={[{ required: true, message: 'Please input data source!' }]}
+            label="File URL"
+            rules={[
+              { required: true, message: 'Please input file URL!' },
+              { type: 'url', message: 'Please enter a valid URL!' }
+            ]}
+            tooltip="Enter the URL of the uploaded file from Vercel Blob Storage"
           >
-            <Input placeholder="e.g., s3://bucket/path or /local/path" />
+            <Input 
+              placeholder="e.g., s3://bucket-name/path/to/your/file.pdf" 
+              size="large"
+            />
           </Form.Item>
 
           <Form.Item
             name="destination"
-            label="Destination"
-            rules={[{ required: true, message: 'Please input destination!' }]}
+            label="Destination (optional)"
+            rules={[{ required: false }]}
           >
-            <Input placeholder="e.g., postgresql://localhost:5432/db" />
-          </Form.Item>
-
-          <Form.Item
-            name="schedule"
-            label="Schedule (Cron Expression)"
-          >
-            <Input placeholder="e.g., 0 0 * * * (daily at midnight)" />
+            <Select placeholder="Select destination" size="large" disabled>
+              <Option value="file">
+                <Space>
+                  <img src="/icons/file_db.png" alt="File" style={{ width: 20, height: 20 }} />
+                  File
+                  <Tag color="orange" style={{ marginLeft: 8 }}>WIP</Tag>
+                </Space>
+              </Option>
+              <Option value="iceberg">
+                <Space>
+                  <img src="/icons/iceberg.png" alt="Iceberg" style={{ width: 20, height: 20 }} />
+                  Iceberg
+                  <Tag color="orange" style={{ marginLeft: 8 }}>WIP</Tag>
+                </Space>
+              </Option>
+              <Option value="kafka">
+                <Space>
+                  <img src="/icons/kafka.png" alt="Kafka" style={{ width: 20, height: 20 }} />
+                  Kafka
+                  <Tag color="orange" style={{ marginLeft: 8 }}>WIP</Tag>
+                </Space>
+              </Option>
+              <Option value="cloud">
+                <Space>
+                  <img src="/icons/cloudera.png" alt="Cloud" style={{ width: 20, height: 20 }} />
+                  Cloud Storage
+                  <Tag color="orange" style={{ marginLeft: 8 }}>WIP</Tag>
+                </Space>
+              </Option>
+            </Select>
           </Form.Item>
 
           <Form.Item
             name="description"
-            label="Description"
+            label="Query/Description for the Agent"
+            rules={[{ required: true, message: 'Please provide a description!' }]}
           >
-            <TextArea rows={4} placeholder="Describe the workflow purpose and configuration" />
+            <TextArea 
+              rows={4} 
+              placeholder="Describe what you want to do with this file, e.g., 'Please process this File' or 'Extract product information from this catalog'"
+              size="large"
+            />
           </Form.Item>
         </Form>
       </Modal>
@@ -303,16 +423,42 @@ const WorkflowOrchestration = () => {
         {selectedWorkflow && (
           <div>
             <Descriptions bordered column={2}>
-              <Descriptions.Item label="Name">{selectedWorkflow.name}</Descriptions.Item>
-              <Descriptions.Item label="Type">{selectedWorkflow.type}</Descriptions.Item>
+              <Descriptions.Item label="Workflow Name">{selectedWorkflow.workflow_name}</Descriptions.Item>
+              <Descriptions.Item label="File Name">{selectedWorkflow.file_name}</Descriptions.Item>
+              <Descriptions.Item label="File Type">
+                <Tag color="blue">{selectedWorkflow.file_type}</Tag>
+              </Descriptions.Item>
               <Descriptions.Item label="Status">
-                <Tag color={selectedWorkflow.status === 'active' ? 'green' : 'orange'}>
+                <Tag color={
+                  selectedWorkflow.status === 'success' ? 'green' : 
+                  selectedWorkflow.status === 'in-progress' ? 'blue' : 
+                  selectedWorkflow.status === 'submitted' ? 'cyan' : 
+                  selectedWorkflow.status === 'failed' ? 'red' : 'default'
+                }>
                   {selectedWorkflow.status.toUpperCase()}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Success Rate">{selectedWorkflow.successRate}%</Descriptions.Item>
-              <Descriptions.Item label="Last Run">{selectedWorkflow.lastRun}</Descriptions.Item>
-              <Descriptions.Item label="Next Run">{selectedWorkflow.nextRun}</Descriptions.Item>
+              <Descriptions.Item label="Records Extracted">{selectedWorkflow.records_extracted}</Descriptions.Item>
+              <Descriptions.Item label="Last Activity">{formatDateTime(selectedWorkflow.last_activity)}</Descriptions.Item>
+              <Descriptions.Item label="Submitted At">{formatDateTime(selectedWorkflow.submitted_at)}</Descriptions.Item>
+              {selectedWorkflow.file_size_bytes !== null && (
+                <Descriptions.Item label="File Size">{(selectedWorkflow.file_size_bytes / 1024 / 1024).toFixed(2)} MB</Descriptions.Item>
+              )}
+              {selectedWorkflow.processing_duration_ms !== null && (
+                <Descriptions.Item label="Processing Duration">{(selectedWorkflow.processing_duration_ms / 1000).toFixed(2)} seconds</Descriptions.Item>
+              )}
+              {selectedWorkflow.is_successful !== null && (
+                <Descriptions.Item label="Successful">
+                  <Tag color={selectedWorkflow.is_successful ? 'green' : 'red'}>
+                    {selectedWorkflow.is_successful ? 'YES' : 'NO'}
+                  </Tag>
+                </Descriptions.Item>
+              )}
+              {selectedWorkflow.error_message && (
+                <Descriptions.Item label="Error Message" span={2}>
+                  <span style={{ color: 'red' }}>{selectedWorkflow.error_message}</span>
+                </Descriptions.Item>
+              )}
             </Descriptions>
 
             <h3 style={{ marginTop: 24, marginBottom: 16 }}>Execution Pipeline</h3>
