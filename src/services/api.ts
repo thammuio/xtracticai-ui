@@ -51,6 +51,39 @@ apiClient.interceptors.response.use(
   }
 );
 
+// File Upload API
+export const uploadService = {
+  // Upload file to Vercel Blob and submit to workflow API
+  uploadFile: async (file: File): Promise<{ url: string; filename: string; size: number; uploadedAt: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      let errorMessage = 'Upload failed';
+      try {
+        const error = await response.json();
+        errorMessage = error.message || error.error || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
+
+  // Submit PDF URL to workflow API
+  submitPdfUrl: async (pdfUrl: string) => {
+    return apiClient.post('/workflows', { pdf_url: pdfUrl });
+  },
+};
+
 // Workflow API
 export const workflowService = {
   // Get all workflows

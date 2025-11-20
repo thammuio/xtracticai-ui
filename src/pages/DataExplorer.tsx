@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Card, Input, Button, Table, Tag, Space, Select, Row, Col, message } from 'antd';
+import { useState, useRef } from 'react';
+import { Card, Input, Button, Table, Tag, Space, Select, Row, Col, App } from 'antd';
 import { Bubble, Sender, useXAgent, useXChat } from '@ant-design/x';
 import {
   SearchOutlined,
@@ -14,11 +14,14 @@ import {
   MessageOutlined,
   FundOutlined,
   LineOutlined,
+  PaperClipOutlined,
 } from '@ant-design/icons';
 import { theme } from '../theme';
+import { uploadService } from '../services/api';
 
 const { Search } = Input;
 const { Option } = Select;
+const { useApp } = App;
 
 interface DataRecord {
   key: string;
@@ -31,6 +34,7 @@ interface DataRecord {
 }
 
 const DataExplorer = () => {
+  const { message } = useApp();
   const [selectedDataset, setSelectedDataset] = useState('processed_pdfs');
   const [tableData] = useState<DataRecord[]>([
     {
@@ -54,6 +58,60 @@ const DataExplorer = () => {
   ]);
 
   const [content, setContent] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle file upload
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      message.error('Please upload a PDF/CSV file');
+      return;
+    }
+
+    // Validate file size (e.g., max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      message.error('File size must be less than 10MB');
+      return;
+    }
+
+    setUploading(true);
+    const hideLoadingMsg = message.loading('Uploading file...', 0);
+
+    try {
+      // Upload to Vercel Blob
+      const uploadResult = await uploadService.uploadFile(file);
+      message.success(`File uploaded: ${uploadResult.filename}`);
+
+      // Submit PDF URL to workflow API
+      await uploadService.submitPdfUrl(uploadResult.url);
+      message.success('PDF URL submitted to workflow successfully!');
+
+      // Optionally add a message to the chat
+      const uploadMessage = `📎 Uploaded: ${uploadResult.filename} (${(uploadResult.size / 1024).toFixed(2)} KB)\nURL: ${uploadResult.url}`;
+      onRequest(uploadMessage);
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      message.error(error.message || 'Failed to upload file');
+    } finally {
+      setUploading(false);
+      hideLoadingMsg();
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
 
   // Configure Ant Design X chat agent
   const [agent] = useXAgent({
@@ -429,21 +487,46 @@ const DataExplorer = () => {
                   />
                 )}
               </div>
-              <Sender
-                value={content}
-                onChange={setContent}
-                onSubmit={(nextContent) => {
-                  onRequest(nextContent);
-                  setContent('');
-                }}
-                placeholder="Ask about your data..."
-                loading={messages.length > 0 && messages[messages.length - 1].status === 'loading'}
-                style={{
-                  borderRadius: 8,
-                  border: `1px solid ${theme.colors.pewter}`,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                }}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileInputChange}
+                  style={{ display: 'none' }}
+                />
+                <Space.Compact style={{ width: '100%' }}>
+                  <Button
+                    icon={<PaperClipOutlined />}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    loading={uploading}
+                    style={{
+                      height: 40,
+                      borderRadius: '8px 0 0 8px',
+                      borderRight: 'none',
+                    }}
+                    title="Upload PDF file"
+                  />
+                  <Sender
+                    value={content}
+                    onChange={setContent}
+                    onSubmit={(nextContent) => {
+                      onRequest(nextContent);
+                      setContent('');
+                    }}
+                    placeholder="Ask about your data or upload a PDF/CSV file..."
+                    loading={messages.length > 0 && messages[messages.length - 1].status === 'loading'}
+                    disabled={uploading}
+                    style={{
+                      flex: 1,
+                      borderRadius: '0 8px 8px 0',
+                      border: `1px solid ${theme.colors.pewter}`,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                    }}
+                  />
+                </Space.Compact>
+              </div>
             </div>
           </Card>
         </Col>

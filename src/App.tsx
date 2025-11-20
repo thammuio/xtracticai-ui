@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Layout, Menu, Badge, Avatar, ConfigProvider, Drawer, Dropdown } from 'antd';
+import { Layout, Menu, Badge, Avatar, ConfigProvider, Drawer, Dropdown, App as AntdApp } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   DashboardOutlined,
@@ -236,7 +236,7 @@ function AppContent() {
             fontWeight: 700,
             color: theme.colors.twilight
           }}>
-            AI-Powered ETL Workflow Management
+            Agentic ETL Workflows powered by Cloudera
           </div>
 
           {/* Header Actions */}
@@ -275,9 +275,11 @@ function AppContent() {
 function App() {
   return (
     <ConfigProvider theme={theme}>
-      <Router>
-        <AppContent />
-      </Router>
+      <AntdApp>
+        <Router>
+          <AppContent />
+        </Router>
+      </AntdApp>
     </ConfigProvider>
   );
 }

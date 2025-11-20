@@ -52,8 +52,8 @@ function Login({ onLogin }: LoginProps) {
           <h1 style={{ color: theme.colors.twilight, margin: 0, fontSize: 24 }}>
             Xtractic AI
           </h1>
-          <p style={{ color: theme.colors.pewter, margin: '8px 0 0 0' }}>
-            AI-Powered ETL Workflow Management
+          <p style={{ color: theme.colors.accent3, margin: '8px 0 0 0' }}>
+            Agentic ETL Workflows powered by Cloudera
           </p>
         </div>
 
@@ -100,7 +100,7 @@ function Login({ onLogin }: LoginProps) {
           </Form.Item>
         </Form>
 
-        <div style={{ textAlign: 'center', color: theme.colors.pewter, fontSize: 12 }}>
+        <div style={{ textAlign: 'center', color: theme.colors.accent3, fontSize: 12 }}>
           Demo credentials: suri / cloudera
         </div>
       </Card>
