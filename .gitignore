@@ -34,6 +34,7 @@ dist-ssr
 # Build output
 build
 out
+dist/*
 
 # Testing
 coverage

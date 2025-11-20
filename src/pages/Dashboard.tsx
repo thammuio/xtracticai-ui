@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Statistic, Table, Tag, Progress, Space, List, Avatar, Divider } from 'antd';
+import { Row, Col, Card, Statistic, Table, Tag, Space, List, Avatar, Divider } from 'antd';
 import {
   ClockCircleOutlined,
   CheckCircleOutlined,
