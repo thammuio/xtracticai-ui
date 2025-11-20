@@ -79,8 +79,33 @@ export const uploadService = {
   },
 
   // Submit PDF URL to workflow API
-  submitPdfUrl: async (pdfUrl: string) => {
-    return apiClient.post('/workflows', { pdf_url: pdfUrl });
+  submitUploadedFileUrl: async (uploadedFileUrl: string) => {
+    return apiClient.post('/workflows', { uploaded_file_url: uploadedFileUrl });
+  },
+
+  // Submit workflow with PDF URL and query
+  submitWorkflow: async (uploadedFileUrl: string, query: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/workflows/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          uploaded_file_url: uploadedFileUrl,
+          query: query,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit workflow');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error submitting workflow:', error);
+      throw error;
+    }
   },
 };
 
@@ -89,7 +114,7 @@ export const workflowService = {
   // Get deployed agents/workflows
   getDeployedAgents: async () => {
     try {
-      const response = await fetch('https://xtractic-api.ml-d248e68a-04a.se-sandb.a465-9q4k.cloudera.site/api/workflows/deployed');
+      const response = await fetch(`${API_BASE_URL}/workflows/deployed`);
       if (!response.ok) {
         throw new Error('Failed to fetch deployed agents');
       }
@@ -274,7 +299,7 @@ export const healthService = {
   // Get a consolidated system health summary
   getSystemHealth: async () => {
     try {
-      return await apiClient.get('/health/summary');
+      return await apiClient.get('/summary');
     } catch (error) {
       // Provide a sensible mock so the UI can render during development
       return {

@@ -59,6 +59,8 @@ const DataExplorer = () => {
 
   const [content, setContent] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Handle file upload
@@ -84,14 +86,15 @@ const DataExplorer = () => {
     try {
       // Upload to Vercel Blob
       const uploadResult = await uploadService.uploadFile(file);
-      message.success(`File uploaded: ${uploadResult.filename}`);
+      
+      // Store file context for later use in chat
+      setUploadedFileUrl(uploadResult.url);
+      setUploadedFileName(uploadResult.filename);
+      
+      message.success(`File uploaded: ${uploadResult.filename}. You can now ask questions about it.`);
 
-      // Submit PDF URL to workflow API
-      await uploadService.submitPdfUrl(uploadResult.url);
-      message.success('PDF URL submitted to workflow successfully!');
-
-      // Optionally add a message to the chat
-      const uploadMessage = `📎 Uploaded: ${uploadResult.filename} (${(uploadResult.size / 1024).toFixed(2)} KB)\nURL: ${uploadResult.url}`;
+      // Add upload notification to chat
+      const uploadMessage = `📎 File uploaded: ${uploadResult.filename} (${(uploadResult.size / 1024).toFixed(2)} KB)`;
       onRequest(uploadMessage);
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -117,20 +120,50 @@ const DataExplorer = () => {
   const [agent] = useXAgent({
     request: async ({ message }: any, { onSuccess, onError }: any) => {
       try {
-        // Simulate AI response - in production, this would call your backend
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const msgText = typeof message === 'string' ? message : '';
         
-        const responses: Record<string, string> = {
-          'show me the latest data': 'Here are the latest 10 records from the processed_pdfs table.',
-          'how many records': `There are currently ${tableData.length} records in the selected dataset.`,
-          'default': 'I can help you explore your datasets. Try asking: "Show me the latest data" or "How many records do we have?"',
-        };
-        
-        const msgText = message?.toLowerCase() || '';
-        const response = responses[msgText] || responses['default'];
-        onSuccess([{ type: 'text', text: response }]);
-      } catch (error) {
-        onError(error as Error);
+        // If this is just a file upload notification, don't call the API
+        if (msgText.startsWith('📎 File uploaded:')) {
+          onSuccess([{ type: 'text', text: 'File is ready. You can now ask questions about it.' }]);
+          return;
+        }
+
+        // If we have an uploaded file, call the workflow submit API
+        if (uploadedFileUrl && msgText && !msgText.startsWith('📎')) {
+          // Build context message with file info
+          const contextMessage = `File: ${uploadedFileName}\nURL: ${uploadedFileUrl}\n\nQuery: ${msgText}`;
+          
+          // Call the workflow submit API
+          const result = await uploadService.submitWorkflow(uploadedFileUrl, msgText);
+          
+          // Format the response
+          let responseText = '';
+          if (result.success) {
+            responseText = result.message || 'Workflow submitted successfully!';
+            if (result.data) {
+              responseText += '\n\n' + JSON.stringify(result.data, null, 2);
+            }
+          } else {
+            responseText = result.message || 'Failed to submit workflow';
+          }
+          
+          onSuccess([{ type: 'text', text: responseText }]);
+        } else if (!uploadedFileUrl && msgText && !msgText.startsWith('📎')) {
+          // No file uploaded, provide default responses
+          const responses: Record<string, string> = {
+            'show me the latest data': 'Here are the latest 10 records from the processed_pdfs table.',
+            'how many records': `There are currently ${tableData.length} records in the selected dataset.`,
+            'default': 'Please upload a PDF file first, then you can ask questions about it.',
+          };
+          
+          const response = responses[msgText.toLowerCase()] || responses['default'];
+          onSuccess([{ type: 'text', text: response }]);
+        } else {
+          onSuccess([{ type: 'text', text: 'Please provide a message.' }]);
+        }
+      } catch (error: any) {
+        console.error('Chat error:', error);
+        onError(error);
       }
     },
   });
@@ -426,7 +459,7 @@ const DataExplorer = () => {
                       color: '#333',
                       marginBottom: 12
                     }}>
-                      Ask me anything about your data
+                      {uploadedFileUrl ? 'Ask questions about your file' : 'Upload a PDF to get started'}
                     </div>
                     <div style={{ 
                       fontSize: 14,
@@ -434,7 +467,10 @@ const DataExplorer = () => {
                       color: '#666',
                       marginBottom: 24
                     }}>
-                      I can help you query, analyze, and understand your datasets
+                      {uploadedFileUrl 
+                        ? `File: ${uploadedFileName}\nNow you can ask questions about it!`
+                        : 'Upload a PDF file and I\'ll help you analyze and understand its contents'
+                      }
                     </div>
                     <div style={{ 
                       background: 'white',
@@ -512,10 +548,12 @@ const DataExplorer = () => {
                     value={content}
                     onChange={setContent}
                     onSubmit={(nextContent) => {
-                      onRequest(nextContent);
-                      setContent('');
+                      if (nextContent.trim()) {
+                        onRequest(nextContent);
+                        setContent('');
+                      }
                     }}
-                    placeholder="Ask about your data or upload a PDF/CSV file..."
+                    placeholder={uploadedFileUrl ? "Ask questions about the uploaded file..." : "Upload a PDF file first, then ask questions..."}
                     loading={messages.length > 0 && messages[messages.length - 1].status === 'loading'}
                     disabled={uploading}
                     style={{
