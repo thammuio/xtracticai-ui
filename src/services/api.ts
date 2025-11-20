@@ -298,41 +298,37 @@ export const healthService = {
 
   // Get a consolidated system health summary
   getSystemHealth: async () => {
-    try {
-      return await apiClient.get('/summary');
-    } catch (error) {
-      // Provide a sensible mock so the UI can render during development
-      return {
-        api: { status: 'ok' },
-        agents: [
-          { id: 'agent-1', name: 'ingest-agent-1', status: 'running', lastSeen: '2025-11-19T09:22:00Z' },
-          { id: 'agent-2', name: 'worker-agent-2', status: 'stopped', lastSeen: '2025-11-18T18:05:00Z' },
-        ],
-        integrations: [
-          {
-            id: 'kafka',
-            name: 'Kafka',
-            status: 'ok',
-            details: { topics: 12, partitions: 48 },
-            logs: { lastLog: '2025-11-19T09:20:00Z', errorCount: 1, logUrl: '/logs/kafka' },
-          },
-          {
-            id: 'iceberg',
-            name: 'Iceberg',
-            status: 'degraded',
-            details: { tables: 8 },
-            logs: { lastLog: '2025-11-19T08:55:00Z', errorCount: 3, logUrl: '/logs/iceberg' },
-          },
-          {
-            id: 'pdf',
-            name: 'PDF Processor',
-            status: 'ok',
-            details: { queueDepth: 3 },
-            logs: { lastLog: '2025-11-19T09:10:00Z', errorCount: 0, logUrl: '/logs/pdf' },
-          },
-        ],
-      };
-    }
+    // Return mock data instead of making API call
+    return {
+      api: { status: 'ok' },
+      agents: [
+        { id: 'agent-1', name: 'ingest-agent-1', status: 'running', lastSeen: '2025-11-19T09:22:00Z' },
+        { id: 'agent-2', name: 'worker-agent-2', status: 'stopped', lastSeen: '2025-11-18T18:05:00Z' },
+      ],
+      integrations: [
+        {
+          id: 'kafka',
+          name: 'Kafka',
+          status: 'ok',
+          details: { topics: 12, partitions: 48 },
+          logs: { lastLog: '2025-11-19T09:20:00Z', errorCount: 1, logUrl: '/logs/kafka' },
+        },
+        {
+          id: 'iceberg',
+          name: 'Iceberg',
+          status: 'degraded',
+          details: { tables: 8 },
+          logs: { lastLog: '2025-11-19T08:55:00Z', errorCount: 3, logUrl: '/logs/iceberg' },
+        },
+        {
+          id: 'pdf',
+          name: 'PDF Processor',
+          status: 'ok',
+          details: { queueDepth: 3 },
+          logs: { lastLog: '2025-11-19T09:10:00Z', errorCount: 0, logUrl: '/logs/pdf' },
+        },
+      ],
+    };
   },
 
   // Get agent list / status

@@ -124,7 +124,7 @@ const DataExplorer = () => {
         
         // If this is just a file upload notification, don't call the API
         if (msgText.startsWith('📎 File uploaded:')) {
-          onSuccess([{ type: 'text', text: 'File is ready. You can now ask questions about it.' }]);
+          onSuccess('File is ready. You can now ask questions about it.');
           return;
         }
 
@@ -144,7 +144,7 @@ const DataExplorer = () => {
             responseText = result.message || 'Failed to submit workflow';
           }
           
-          onSuccess([{ type: 'text', text: responseText }]);
+          onSuccess(responseText);
         } else if (!uploadedFileUrl && msgText && !msgText.startsWith('📎')) {
           // No file uploaded, provide default responses
           const responses: Record<string, string> = {
@@ -154,9 +154,9 @@ const DataExplorer = () => {
           };
           
           const response = responses[msgText.toLowerCase()] || responses['default'];
-          onSuccess([{ type: 'text', text: response }]);
+          onSuccess(response);
         } else {
-          onSuccess([{ type: 'text', text: 'Please provide a message.' }]);
+          onSuccess('Please provide a message.');
         }
       } catch (error: any) {
         console.error('Chat error:', error);
