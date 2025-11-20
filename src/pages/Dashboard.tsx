@@ -44,6 +44,11 @@ interface HealthSummary {
   }>;
 }
 
+interface ApiHealth {
+  status: string;
+  version: string;
+}
+
 const Dashboard = () => {
   const [stats, setStats] = useState<WorkflowStats>({
     total: 0,
@@ -54,10 +59,12 @@ const Dashboard = () => {
   const [recentWorkflows, setRecentWorkflows] = useState<RecentWorkflow[]>([]);
   const [loading, setLoading] = useState(false);
   const [health, setHealth] = useState<HealthSummary | null>(null);
+  const [apiHealth, setApiHealth] = useState<ApiHealth | null>(null);
 
   useEffect(() => {
     loadDashboardData();
     loadHealth();
+    loadApiHealth();
   }, []);
 
   const loadDashboardData = async () => {
@@ -84,6 +91,16 @@ const Dashboard = () => {
     // The API service handles errors and returns mock data, so we don't need try-catch here
     const data = await healthService.getSystemHealth();
     setHealth(data as HealthSummary);
+  };
+
+  const loadApiHealth = async () => {
+    try {
+      const data = await healthService.getHealth();
+      setApiHealth(data as ApiHealth);
+    } catch (error) {
+      console.error('Failed to load API health:', error);
+      setApiHealth({ status: 'unhealthy', version: 'unknown' });
+    }
   };
 
   const chartData = [
@@ -253,14 +270,16 @@ const Dashboard = () => {
                 </Space>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, alignSelf: 'flex-start' }}>
                   <div style={{ textAlign: 'right', lineHeight: 1 }}>
-                    <div style={{ fontSize: 12, color: '#888' }}>API</div>
-                    <div style={{ fontSize: 14 }}>
-                      {health?.api?.status === 'ok' ? (
-                        <Tag style={{ border: '1px solid #52c41a', color: '#52c41a', background: 'transparent', fontWeight: 700 }}>Healthy</Tag>
-                      ) : health?.api?.status === 'degraded' ? (
-                        <Tag style={{ border: '1px solid #faad14', color: '#faad14', background: 'transparent', fontWeight: 700 }}>Degraded</Tag>
+                    
+                    <div style={{ fontSize: 14, marginTop: 4 }}>
+                      {apiHealth?.status === 'healthy' ? (
+                        <Tag style={{ border: '1px solid #52c41a', color: '#52c41a', background: 'transparent', fontWeight: 700 }}>
+                          {apiHealth.status.toUpperCase()}
+                        </Tag>
                       ) : (
-                        <Tag style={{ border: '1px solid #f5222d', color: '#f5222d', background: 'transparent', fontWeight: 700 }}>Down</Tag>
+                        <Tag style={{ border: '1px solid #f5222d', color: '#f5222d', background: 'transparent', fontWeight: 700 }}>
+                          {apiHealth?.status?.toUpperCase() || 'UNKNOWN'}
+                        </Tag>
                       )}
                     </div>
                   </div>

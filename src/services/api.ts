@@ -248,6 +248,15 @@ export default apiClient;
 
 // Health APIs
 export const healthService = {
+  // Get basic API health
+  getHealth: async () => {
+    try {
+      return await apiClient.get('/health');
+    } catch (error) {
+      return { status: 'unhealthy', version: 'unknown' };
+    }
+  },
+
   // Get a consolidated system health summary
   getSystemHealth: async () => {
     try {
