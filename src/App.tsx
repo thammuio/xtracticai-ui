@@ -101,11 +101,12 @@ function AppContent() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: `linear-gradient(135deg, ${theme.colors.blueNova}22 0%, ${theme.colors.orange}22 100%)`,
+          background: 'rgba(255, 255, 255, 0.95)',
           borderRadius: 12,
           padding: '12px',
           cursor: 'pointer',
-          transition: 'transform 0.2s ease'
+          transition: 'transform 0.2s ease',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
         }}
         onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
         onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
@@ -116,7 +117,7 @@ function AppContent() {
             style={{ 
               height: 40,
               width: 'auto',
-              objectFit: 'contain'
+              objectFit: 'contain',
             }} 
           />
           <img 
@@ -126,7 +127,7 @@ function AppContent() {
               height: 24,
               width: 'auto',
               objectFit: 'contain',
-              marginTop: 4
+              marginTop: 4,
             }} 
           />
         </div>

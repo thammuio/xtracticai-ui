@@ -108,6 +108,15 @@ const WorkflowOrchestration = () => {
       title: 'File Name',
       dataIndex: 'file_name',
       key: 'file_name',
+      render: (fileName: string) => {
+        // Check if filename is a string without proper extension or doesn't end with .pdf or .csv
+        const hasValidExtension = fileName && (fileName.toLowerCase().endsWith('.pdf') || fileName.toLowerCase().endsWith('.csv'));
+        
+        if (!hasValidExtension) {
+          return <span style={{ color: theme.colors.orange, fontWeight: 500 }}>&lt;file not found&gt;</span>;
+        }
+        return fileName;
+      },
     },
     {
       title: 'File Type',

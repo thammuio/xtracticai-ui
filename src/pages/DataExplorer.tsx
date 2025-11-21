@@ -456,7 +456,7 @@ const DataExplorer = () => {
                       color: '#333',
                       marginBottom: 12
                     }}>
-                      {uploadedFileUrl ? 'Ask questions about your file' : 'Upload a PDF to get started'}
+                      {uploadedFileUrl ? 'Ask questions about your file' : ''}
                     </div>
                     <div style={{ 
                       fontSize: 14,
@@ -466,7 +466,7 @@ const DataExplorer = () => {
                     }}>
                       {uploadedFileUrl 
                         ? `File: ${uploadedFileName}\nNow you can ask questions about it!`
-                        : 'Upload a PDF file and I\'ll help you analyze and understand its contents'
+                        : 'Upload a PDF/CSV file and I\'ll help you with your task.'
                       }
                     </div>
                     <div style={{ 

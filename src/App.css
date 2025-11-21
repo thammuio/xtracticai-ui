@@ -13,6 +13,12 @@
   box-shadow: 2px 0 12px rgba(18, 0, 70, 0.15);
 }
 
+/* Enhance logo container visibility */
+.ant-layout-sider a > div {
+  background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 .workflow-card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 12px;
