@@ -108,6 +108,7 @@ const WorkflowOrchestration = () => {
       title: 'File Name',
       dataIndex: 'file_name',
       key: 'file_name',
+      ellipsis: true,
       render: (fileName: string) => {
         // Check if filename is a string without proper extension or doesn't end with .pdf or .csv
         const hasValidExtension = fileName && (fileName.toLowerCase().endsWith('.pdf') || fileName.toLowerCase().endsWith('.csv'));
@@ -115,14 +116,40 @@ const WorkflowOrchestration = () => {
         if (!hasValidExtension) {
           return <span style={{ color: theme.colors.orange, fontWeight: 500 }}>&lt;file not found&gt;</span>;
         }
-        return fileName;
+        
+        // Decode URL-encoded file names and truncate for mobile
+        const decodedFileName = decodeURIComponent(fileName);
+        const displayName = decodedFileName.length > 50 
+          ? `${decodedFileName.substring(0, 47)}...` 
+          : decodedFileName;
+        
+        return (
+          <span title={decodedFileName} style={{ 
+            wordBreak: 'break-word',
+            overflowWrap: 'anywhere'
+          }}>
+            {displayName}
+          </span>
+        );
       },
     },
     {
       title: 'File Type',
       dataIndex: 'file_type',
       key: 'file_type',
-      render: (type: string) => <Tag color="blue">{type}</Tag>,
+      render: (type: string, record: Workflow) => {
+        // Detect file type from file name if type is UNKNOWN
+        let fileType = type;
+        if (type === 'UNKNOWN' && record.file_name) {
+          const fileName = record.file_name.toLowerCase();
+          if (fileName.endsWith('.pdf')) {
+            fileType = 'PDF';
+          } else if (fileName.endsWith('.csv')) {
+            fileType = 'CSV';
+          }
+        }
+        return <Tag color="blue">{fileType}</Tag>;
+      },
     },
     {
       title: 'Status',
@@ -304,6 +331,10 @@ const WorkflowOrchestration = () => {
         onCancel={handleModalCancel}
         width={600}
         confirmLoading={submitting}
+        okText="Submit"
+        okButtonProps={{
+          icon: <ApiOutlined />
+        }}
       >
         <Form form={form} layout="vertical">
           <Form.Item
