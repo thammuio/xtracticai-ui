@@ -11,10 +11,12 @@ import {
   MenuOutlined,
   LogoutOutlined,
   UserOutlined,
+  RobotOutlined,
 } from '@ant-design/icons';
 import Dashboard from './pages/Dashboard';
 import WorkflowOrchestration from './pages/WorkflowOrchestration';
 import DataExplorer from './pages/DataExplorer';
+import Assistant from './pages/Assistant';
 import Login from './pages/Login';
 import theme from './theme';
 import './App.css';
@@ -36,6 +38,11 @@ const menuItems = [
     key: '/explorer',
     icon: <DatabaseOutlined />,
     label: 'Data Explorer',
+  },
+  {
+    key: '/assistant',
+    icon: <RobotOutlined />,
+    label: 'AI Assistant',
   },
 ];
 
@@ -101,15 +108,23 @@ function AppContent() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'rgba(255, 255, 255, 0.95)',
+          background: 'rgba(18, 0, 70, 0.03)',
           borderRadius: 12,
           padding: '12px',
           cursor: 'pointer',
-          transition: 'transform 0.2s ease',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+          transition: 'all 0.2s ease',
+          border: '1px solid rgba(18, 0, 70, 0.1)'
         }}
-        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.background = 'rgba(18, 0, 70, 0.08)';
+          e.currentTarget.style.borderColor = 'rgba(18, 0, 70, 0.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.background = 'rgba(18, 0, 70, 0.03)';
+          e.currentTarget.style.borderColor = 'rgba(18, 0, 70, 0.1)';
+        }}
         >
           <img 
             src={`/${randomLogo}`} 
@@ -133,10 +148,10 @@ function AppContent() {
         </div>
       </Link>
       <Menu
-        theme="dark"
+        theme="light"
         mode="inline"
         selectedKeys={[location.pathname]}
-        style={{ background: 'transparent' }}
+        style={{ background: 'transparent', border: 'none' }}
         onClick={closeDrawer}
         items={menuItems.map((item) => ({
           ...item,
@@ -161,7 +176,7 @@ function AppContent() {
           left: 0,
           top: 0,
           bottom: 0,
-          background: theme.colors.twilight,
+          background: theme.colors.white,
           zIndex: 999,
         }}
       >
@@ -177,7 +192,7 @@ function AppContent() {
         styles={{
           body: {
             padding: 0,
-            background: theme.colors.twilight,
+            background: theme.colors.white,
           },
         }}
         width={250}
@@ -273,6 +288,7 @@ function AppContent() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/workflows" element={<WorkflowOrchestration />} />
               <Route path="/explorer" element={<DataExplorer />} />
+              <Route path="/assistant" element={<Assistant />} />
             </Routes>
           </div>
         </Content>

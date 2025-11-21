@@ -10,13 +10,8 @@
 }
 
 .ant-layout-sider {
-  box-shadow: 2px 0 12px rgba(18, 0, 70, 0.15);
-}
-
-/* Enhance logo container visibility */
-.ant-layout-sider a > div {
-  background: rgba(255, 255, 255, 0.95) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 12px rgba(18, 0, 70, 0.08);
+  border-right: 1px solid rgba(18, 0, 70, 0.08);
 }
 
 .workflow-card {
@@ -57,9 +52,25 @@
   box-shadow: 0 6px 16px rgba(255, 85, 13, 0.4);
 }
 
-.ant-menu-dark .ant-menu-item-selected {
-  background: linear-gradient(135deg, rgba(85, 85, 249, 0.2) 0%, rgba(255, 85, 13, 0.2) 100%) !important;
-  border-right: 3px solid var(--color-orange);
+.ant-menu-light .ant-menu-item-selected {
+  background: linear-gradient(135deg, rgba(18, 0, 70, 0.1) 0%, rgba(18, 0, 70, 0.05) 100%) !important;
+  border-right: 3px solid var(--color-twilight);
+  color: var(--color-twilight) !important;
+}
+
+.ant-menu-light .ant-menu-item-selected .ant-menu-item-icon,
+.ant-menu-light .ant-menu-item-selected a {
+  color: var(--color-twilight) !important;
+}
+
+.ant-menu-light .ant-menu-item:hover {
+  background: linear-gradient(135deg, rgba(18, 0, 70, 0.15) 0%, rgba(18, 0, 70, 0.08) 100%) !important;
+  color: var(--color-twilight) !important;
+}
+
+.ant-menu-light .ant-menu-item:hover .ant-menu-item-icon,
+.ant-menu-light .ant-menu-item:hover a {
+  color: var(--color-twilight) !important;
 }
 
 /* Desktop Sidebar - Hide on Mobile */
