@@ -8,6 +8,7 @@ import {
   BarChartOutlined,
   RobotOutlined,
   FileTextOutlined,
+  FileAddOutlined,
   LineChartOutlined,
   SyncOutlined,
   DatabaseOutlined,
@@ -62,6 +63,7 @@ const DataExplorer = () => {
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadedFileUrlRef = useRef<string | null>(null);
 
   // Handle file upload
   const handleFileUpload = async (file: File) => {
@@ -90,6 +92,7 @@ const DataExplorer = () => {
       // Store file context for later use in chat
       setUploadedFileUrl(uploadResult.url);
       setUploadedFileName(uploadResult.filename);
+      uploadedFileUrlRef.current = uploadResult.url; // Store in ref for agent access
       
       message.success(`File uploaded: ${uploadResult.filename}. You can now ask questions about it.`);
 
@@ -121,6 +124,10 @@ const DataExplorer = () => {
     request: async ({ message }: any, { onSuccess, onError }: any) => {
       try {
         const msgText = typeof message === 'string' ? message : '';
+        const currentFileUrl = uploadedFileUrlRef.current;
+        
+        console.log('Chat request - Message:', msgText);
+        console.log('Chat request - uploadedFileUrl from ref:', currentFileUrl);
         
         // If this is just a file upload notification, don't call the API
         if (msgText.startsWith('📎 File uploaded:')) {
@@ -129,23 +136,32 @@ const DataExplorer = () => {
         }
 
         // If we have an uploaded file, call the workflow submit API
-        if (uploadedFileUrl && msgText && !msgText.startsWith('📎')) {
-          // Call the workflow submit API
-          const result = await uploadService.submitWorkflow(uploadedFileUrl, msgText);
+        if (currentFileUrl && msgText && !msgText.startsWith('📎')) {
+          console.log('Calling workflow submit API...');
           
-          // Format the response
-          let responseText = '';
-          if (result.success) {
-            responseText = result.message || 'Workflow submitted successfully!';
-            if (result.data) {
-              responseText += '\n\n' + JSON.stringify(result.data, null, 2);
+          try {
+            // Call the workflow submit API
+            const result = await uploadService.submitWorkflow(currentFileUrl, msgText);
+            
+            console.log('Workflow API response:', result);
+            
+            // Format the response
+            let responseText = '';
+            if (result.success) {
+              responseText = result.message || 'Workflow submitted successfully!';
+              if (result.data) {
+                responseText += '\n\nData:\n' + JSON.stringify(result.data, null, 2);
+              }
+            } else {
+              responseText = result.message || 'Failed to submit workflow';
             }
-          } else {
-            responseText = result.message || 'Failed to submit workflow';
+            
+            onSuccess(responseText);
+          } catch (apiError: any) {
+            console.error('Workflow API error:', apiError);
+            onError(new Error(apiError.message || 'Failed to submit workflow. Please try again.'));
           }
-          
-          onSuccess(responseText);
-        } else if (!uploadedFileUrl && msgText && !msgText.startsWith('📎')) {
+        } else if (!currentFileUrl && msgText && !msgText.startsWith('📎')) {
           // No file uploaded, provide default responses
           const responses: Record<string, string> = {
             'show me the latest data': 'Here are the latest 10 records from the processed_pdfs table.',
@@ -466,7 +482,7 @@ const DataExplorer = () => {
                     }}>
                       {uploadedFileUrl 
                         ? `File: ${uploadedFileName}\nNow you can ask questions about it!`
-                        : 'Upload a PDF/CSV file and I\'ll help you with your task.'
+                        : ''
                       }
                     </div>
                     <div style={{ 
@@ -495,6 +511,10 @@ const DataExplorer = () => {
                         flexDirection: 'column',
                         gap: 8
                       }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <FileAddOutlined style={{ color: theme.colors.orange, fontSize: 16 }} />
+                          <span>"Upload a PDF / CSV to automate Data Extraction"</span>
+                        </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <MessageOutlined style={{ color: theme.colors.blueNova, fontSize: 16 }} />
                           <span>"Show me the latest data"</span>

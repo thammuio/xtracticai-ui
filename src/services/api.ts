@@ -86,23 +86,37 @@ export const uploadService = {
   // Submit workflow with PDF URL and query
   submitWorkflow: async (uploadedFileUrl: string, query: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/workflows/submit`, {
+      const url = `${API_BASE_URL}/api/workflows/submit`;
+      const payload = {
+        uploaded_file_url: uploadedFileUrl,
+        query: query,
+      };
+      
+      console.log('=== Workflow Submit API Call ===');
+      console.log('URL:', url);
+      console.log('Payload:', payload);
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          uploaded_file_url: uploadedFileUrl,
-          query: query,
-        }),
+        body: JSON.stringify(payload),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
       if (!response.ok) {
-        throw new Error('Failed to submit workflow');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error response:', errorData);
+        throw new Error(errorData.message || errorData.error || 'Failed to submit workflow');
       }
 
-      return await response.json();
-    } catch (error) {
+      const result = await response.json();
+      console.log('Success response:', result);
+      return result;
+    } catch (error: any) {
       console.error('Error submitting workflow:', error);
       throw error;
     }
