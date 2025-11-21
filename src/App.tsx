@@ -49,7 +49,9 @@ const menuItems = [
 function AppContent() {
   const location = useLocation();
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    return localStorage.getItem('sidebarCollapsed') === 'true';
+  });
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return localStorage.getItem('isLoggedIn') === 'true';
   });
@@ -248,12 +250,10 @@ function AppContent() {
       <Layout className="main-layout" style={{ marginLeft: 0, height: 'calc(100vh - 64px)' }}>
         {/* Desktop Sidebar */}
         <Sider
-          breakpoint="lg"
           collapsedWidth="80"
           width={200}
           className="desktop-sider"
           collapsed={collapsed}
-          onCollapse={(value) => setCollapsed(value)}
           trigger={null}
           style={{
             overflow: 'hidden',
@@ -265,7 +265,11 @@ function AppContent() {
         >
           <MenuContent isCollapsed={collapsed} />
           <div
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => {
+              const newCollapsed = !collapsed;
+              setCollapsed(newCollapsed);
+              localStorage.setItem('sidebarCollapsed', newCollapsed.toString());
+            }}
             style={{
               position: 'absolute',
               bottom: 0,
