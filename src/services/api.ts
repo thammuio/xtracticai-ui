@@ -281,9 +281,43 @@ export const etlService = {
 
 // AI Assistant API
 export const aiService = {
-  // Chat with AI assistant
-  chat: async (message: string, context?: any) => {
-    return apiClient.post('/api/ai/chat', { message, context });
+  // Chat with AI assistant (no file required)
+  chat: async (messages: Array<{role: string, content: string}>, context?: any) => {
+    try {
+      const url = `${API_BASE_URL}/api/chat`;
+      const payload = {
+        messages: messages,
+        ...(context && { context }),
+      };
+      
+      console.log('=== Chat API Call ===');
+      console.log('URL:', url);
+      console.log('Payload:', payload);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error response:', errorData);
+        throw new Error(errorData.message || errorData.error || 'Failed to send chat message');
+      }
+
+      const result = await response.json();
+      console.log('Success response:', result);
+      return result;
+    } catch (error: any) {
+      console.error('Error in chat:', error);
+      throw error;
+    }
   },
 
   // Get data insights

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, Input, Button, Table, Tag, Space, Select, Row, Col, App } from 'antd';
 import { Bubble, Sender, useXAgent, useXChat } from '@ant-design/x';
 import {
@@ -18,7 +18,7 @@ import {
   PaperClipOutlined,
 } from '@ant-design/icons';
 import { theme } from '../theme';
-import { uploadService } from '../services/api';
+import { uploadService, aiService } from '../services/api';
 
 const { Search } = Input;
 const { Option } = Select;
@@ -62,8 +62,10 @@ const DataExplorer = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [conversationHistory, setConversationHistory] = useState<Array<{role: string, content: string}>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadedFileUrlRef = useRef<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Handle file upload
   const handleFileUpload = async (file: File) => {
@@ -162,15 +164,40 @@ const DataExplorer = () => {
             onError(new Error(apiError.message || 'Failed to submit workflow. Please try again.'));
           }
         } else if (!currentFileUrl && msgText && !msgText.startsWith('📎')) {
-          // No file uploaded, provide default responses
-          const responses: Record<string, string> = {
-            'show me the latest data': 'Here are the latest 10 records from the processed_pdfs table.',
-            'how many records': `There are currently ${tableData.length} records in the selected dataset.`,
-            'default': 'Please upload a PDF file first, then you can ask questions about it.',
-          };
+          // No file uploaded, call the chat API instead
+          console.log('Calling chat API without file...');
           
-          const response = responses[msgText.toLowerCase()] || responses['default'];
-          onSuccess(response);
+          try {
+            // Build conversation history with new message
+            const updatedHistory = [
+              ...conversationHistory,
+              { role: 'user', content: msgText }
+            ];
+            
+            // Call the chat API with full conversation history
+            const result = await aiService.chat(updatedHistory);
+            
+            console.log('Chat API response:', result);
+            
+            // Format the response
+            let responseText = '';
+            if (result.success !== false) {
+              responseText = result.message || result.response || JSON.stringify(result);
+            } else {
+              responseText = result.message || 'Failed to process chat message';
+            }
+            
+            // Update conversation history with assistant's response
+            setConversationHistory([
+              ...updatedHistory,
+              { role: 'assistant', content: responseText }
+            ]);
+            
+            onSuccess(responseText);
+          } catch (apiError: any) {
+            console.error('Chat API error:', apiError);
+            onError(new Error(apiError.message || 'Failed to send chat message. Please try again.'));
+          }
         } else {
           onSuccess('Please provide a message.');
         }
@@ -182,6 +209,11 @@ const DataExplorer = () => {
   });
 
   const { onRequest, messages } = useXChat({ agent });
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const columns = [
     {
@@ -447,8 +479,8 @@ const DataExplorer = () => {
                 flex: 1, 
                 overflow: 'auto', 
                 marginBottom: 16,
-                padding: '16px',
-                background: '#fafafa'
+                padding: '16px 0',
+                background: '#ffffff'
               }}>
                 {messages.length === 0 ? (
                   <div style={{ 
@@ -472,7 +504,7 @@ const DataExplorer = () => {
                       color: '#333',
                       marginBottom: 12
                     }}>
-                      {uploadedFileUrl ? 'Ask questions about your file' : ''}
+                      {uploadedFileUrl ? 'Ask questions about your file' : 'AI Assistant Ready'}
                     </div>
                     <div style={{ 
                       fontSize: 14,
@@ -482,7 +514,7 @@ const DataExplorer = () => {
                     }}>
                       {uploadedFileUrl 
                         ? `File: ${uploadedFileName}\nNow you can ask questions about it!`
-                        : ''
+                        : 'Upload a file or just ask me anything!'
                       }
                     </div>
                     <div style={{ 
@@ -531,13 +563,37 @@ const DataExplorer = () => {
                     </div>
                   </div>
                 ) : (
-                  <Bubble.List
-                    items={messages.map((msg: any) => ({
-                      key: msg.id,
-                      role: msg.role as 'user' | 'assistant',
-                      content: msg.message || msg.content || '',
-                    }))}
-                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {messages.map((msg: any, index: number) => {
+                      // User messages are at even indices (0, 2, 4...), assistant at odd indices (1, 3, 5...)
+                      const isUser = index % 2 === 0;
+                      const isLoading = msg.status === 'loading';
+                      return (
+                        <Bubble
+                          key={msg.id}
+                          placement={isUser ? 'end' : 'start'}
+                          content={msg.message || msg.content || ''}
+                          avatar={isUser 
+                            ? { src: '/suri.jpg' }
+                            : { icon: <RobotOutlined />, style: { background: theme.colors.blueNova, color: '#fff' } }
+                          }
+                          typing={isLoading}
+                          loading={isLoading}
+                          styles={{
+                            content: {
+                              background: isUser ? '#FFE8D6' : '#E6E6FF',
+                              color: '#333',
+                            },
+                          }}
+                          style={{
+                            marginLeft: 0,
+                            marginRight: 0,
+                          }}
+                        />
+                      );
+                    })}
+                    <div ref={messagesEndRef} />
+                  </div>
                 )}
               </div>
               <div style={{ position: 'relative' }}>
@@ -570,7 +626,7 @@ const DataExplorer = () => {
                         setContent('');
                       }
                     }}
-                    placeholder={uploadedFileUrl ? "Ask questions about the uploaded file..." : "Upload a PDF file first, then ask questions..."}
+                    placeholder={uploadedFileUrl ? "Ask questions about the uploaded file..." : "Ask me anything or upload a file..."}
                     loading={messages.length > 0 && messages[messages.length - 1].status === 'loading'}
                     disabled={uploading}
                     style={{
