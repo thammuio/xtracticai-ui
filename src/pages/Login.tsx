@@ -9,6 +9,12 @@ interface LoginProps {
 
 function Login({ onLogin }: LoginProps) {
   const [loading, setLoading] = useState(false);
+  
+  // Randomly select one of the three logos
+  const [randomLogo] = useState(() => {
+    const logos = ['xtractic-logo1.png', 'xtractic-logo2.png', 'xtractic-logo3.png'];
+    return logos[Math.floor(Math.random() * logos.length)];
+  });
 
   const handleLogin = (values: { username: string; password: string }) => {
     setLoading(true);
@@ -44,16 +50,20 @@ function Login({ onLogin }: LoginProps) {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <img
-            src="/xtractic-ai4.png"
-            alt="Xtractic AI"
-            style={{ height: 60, marginBottom: 16 }}
-          />
-          <h1 style={{ color: theme.colors.twilight, margin: 0, fontSize: 24 }}>
-            Xtractic AI
-          </h1>
-          <p style={{ color: theme.colors.accent3, margin: '8px 0 0 0' }}>
-            Agentic ETL Workflows powered by Cloudera
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <img
+              src={`/${randomLogo}`}
+              alt="Xtractic AI"
+              style={{ height: 60 }}
+            />
+            <img
+              src="/xtractic-ai.png"
+              alt="Xtractic AI"
+              style={{ height: 32 }}
+            />
+          </div>
+          <p style={{ color: theme.colors.accent3, margin: '16px 0 0 0' }}>
+            Agentic Data Workflows & Automation powered by Cloudera
           </p>
         </div>
 

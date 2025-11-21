@@ -46,6 +46,12 @@ function AppContent() {
     return localStorage.getItem('isLoggedIn') === 'true';
   });
 
+  // Randomly select one of the three logos
+  const [randomLogo] = useState(() => {
+    const logos = ['xtractic-logo1.png', 'xtractic-logo2.png', 'xtractic-logo3.png'];
+    return logos[Math.floor(Math.random() * logos.length)];
+  });
+
   const showDrawer = () => {
     setDrawerVisible(true);
   };
@@ -105,7 +111,7 @@ function AppContent() {
         onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
           <img 
-            src="/xtractic-ai4.png" 
+            src={`/${randomLogo}`} 
             alt="Xtractic AI" 
             style={{ 
               height: 40,
@@ -113,14 +119,16 @@ function AppContent() {
               objectFit: 'contain'
             }} 
           />
-          <span style={{ 
-            color: 'white',
-            fontSize: 14,
-            fontWeight: 600,
-            marginTop: 4
-          }}>
-            Xtractic AI
-          </span>
+          <img 
+            src="/xtractic-ai.png" 
+            alt="Xtractic AI" 
+            style={{ 
+              height: 24,
+              width: 'auto',
+              objectFit: 'contain',
+              marginTop: 4
+            }} 
+          />
         </div>
       </Link>
       <Menu
@@ -204,7 +212,7 @@ function AppContent() {
             />
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
               <img 
-                src="/xtractic-ai4.png" 
+                src={`/${randomLogo}`} 
                 alt="Xtractic AI" 
                 className="mobile-logo"
                 style={{ 
@@ -215,18 +223,18 @@ function AppContent() {
                   cursor: 'pointer'
                 }} 
               />
-              <span 
+              <img 
+                src="/xtractic-ai.png" 
+                alt="Xtractic AI"
                 className="mobile-logo-text"
                 style={{ 
-                  color: theme.colors.twilight,
-                  fontSize: 16,
-                  fontWeight: 600,
+                  height: 24,
+                  width: 'auto',
+                  objectFit: 'contain',
                   display: 'none',
                   cursor: 'pointer'
                 }}
-              >
-                Xtractic AI
-              </span>
+              />
             </Link>
           </div>
 
@@ -236,7 +244,7 @@ function AppContent() {
             fontWeight: 700,
             color: theme.colors.twilight
           }}>
-            Agentic ETL Workflows powered by Cloudera
+            Agentic Data Workflows & Automation powered by Cloudera
           </div>
 
           {/* Header Actions */}
