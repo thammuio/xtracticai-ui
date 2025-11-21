@@ -26,15 +26,6 @@ interface WorkflowStats {
   failed: number;
 }
 
-interface RecentWorkflow {
-  key: string;
-  name: string;
-  status: string;
-  startTime: string;
-  duration: string;
-  recordsProcessed: number;
-}
-
 interface HealthSummary {
   api: { status: string };
   agents: Array<{ id: string; name: string; status: string; lastSeen?: string }>;
@@ -96,39 +87,18 @@ const Dashboard = () => {
     completed: 0,
     failed: 0
   });
-  const [recentWorkflows, setRecentWorkflows] = useState<RecentWorkflow[]>([]);
-  const [loading, setLoading] = useState(false);
   const [health, setHealth] = useState<HealthSummary | null>(null);
   const [apiHealth, setApiHealth] = useState<ApiHealth | null>(null);
   const [deployedAgents, setDeployedAgents] = useState<DeployedAgent[]>([]);
   const [agentsLoading, setAgentsLoading] = useState(false);
 
   useEffect(() => {
-    loadDashboardData();
     loadHealth();
     loadApiHealth();
     loadDeployedAgents();
   }, []);
 
-  const loadDashboardData = async () => {
-    setLoading(true);
-    try {
-      const [statsData, workflowsData] = await Promise.all([
-        workflowService.getStats(),
-        workflowService.getRecentWorkflows()
-      ]);
-      setStats(statsData as WorkflowStats);
-      // Ensure workflowsData is always an array
-      const workflows = Array.isArray(workflowsData) ? workflowsData : [];
-      setRecentWorkflows(workflows as RecentWorkflow[]);
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error);
-      // Set empty array on error
-      setRecentWorkflows([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const loadHealth = async () => {
     // The API service handles errors and returns mock data, so we don't need try-catch here
@@ -152,6 +122,18 @@ const Dashboard = () => {
       const response = await workflowService.getDeployedAgents() as DeployedAgentsResponse;
       if (response.success) {
         setDeployedAgents(response.data);
+        
+        // Update stats based on deployed agents
+        const workflows = response.data.filter(agent => agent.is_workflow);
+        const runningCount = workflows.filter(w => w.status === 'APPLICATION_RUNNING').length;
+        const stoppedCount = workflows.filter(w => w.status !== 'APPLICATION_RUNNING').length;
+        
+        setStats({
+          total: workflows.length,
+          running: runningCount,
+          completed: stoppedCount,
+          failed: 0,
+        });
       }
     } catch (error) {
       console.error('Failed to load deployed agents:', error);
@@ -483,13 +465,27 @@ const Dashboard = () => {
             <span style={{ fontSize: 16, fontWeight: 600 }}>Recent Workflows</span>
           </Space>
         }
-        loading={loading}
+        loading={agentsLoading}
         bordered={false}
       >
         <Table
           columns={columns}
-          dataSource={recentWorkflows}
-          pagination={{ pageSize: 5 }}
+          dataSource={deployedAgents
+            .filter(agent => agent.is_workflow)
+            .slice(0, 5)
+            .map((agent) => ({
+              key: agent.id,
+              name: agent.name.replace(/^Workflow:\s*/, '').replace(/_[a-zA-Z0-9]+$/, ''),
+              status: agent.status === 'APPLICATION_RUNNING' ? 'running' : 'stopped',
+              startTime: agent.running_at ? new Date(agent.running_at).toLocaleString() : new Date(agent.created_at).toLocaleString(),
+              duration: agent.running_at && agent.stopped_at 
+                ? Math.floor((new Date(agent.stopped_at).getTime() - new Date(agent.running_at).getTime()) / 60000) + 'm'
+                : agent.running_at 
+                  ? Math.floor((Date.now() - new Date(agent.running_at).getTime()) / 60000) + 'm'
+                  : '—',
+              recordsProcessed: 0,
+            }))}
+          pagination={false}
         />
       </Card>
     </div>
