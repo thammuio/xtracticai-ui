@@ -49,6 +49,7 @@ const menuItems = [
 function AppContent() {
   const location = useLocation();
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return localStorage.getItem('isLoggedIn') === 'true';
   });
@@ -98,90 +99,62 @@ function AppContent() {
     },
   ];
 
-  const MenuContent = () => (
-    <>
-      <Link to="/" style={{ textDecoration: 'none' }}>
-        <div style={{ 
-          height: 80, 
-          margin: 16, 
-          display: 'flex', 
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'rgba(18, 0, 70, 0.03)',
-          borderRadius: 12,
-          padding: '12px',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-          border: '1px solid rgba(18, 0, 70, 0.1)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)';
-          e.currentTarget.style.background = 'rgba(18, 0, 70, 0.08)';
-          e.currentTarget.style.borderColor = 'rgba(18, 0, 70, 0.2)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.background = 'rgba(18, 0, 70, 0.03)';
-          e.currentTarget.style.borderColor = 'rgba(18, 0, 70, 0.1)';
-        }}
-        >
-          <img 
-            src={`/${randomLogo}`} 
-            alt="Xtractic AI" 
-            style={{ 
-              height: 40,
-              width: 'auto',
-              objectFit: 'contain',
-            }} 
-          />
-          <img 
-            src="/xtractic-ai.png" 
-            alt="Xtractic AI" 
-            style={{ 
-              height: 24,
-              width: 'auto',
-              objectFit: 'contain',
-              marginTop: 4,
-            }} 
-          />
-        </div>
-      </Link>
-      <Menu
-        theme="light"
-        mode="inline"
-        selectedKeys={[location.pathname]}
-        style={{ background: 'transparent', border: 'none' }}
-        onClick={closeDrawer}
-        items={menuItems.map((item) => ({
-          ...item,
-          label: <Link to={item.key}>{item.label}</Link>,
-        }))}
-      />
-    </>
+  const settingsMenuItems: MenuProps['items'] = [
+    {
+      key: 'info',
+      label: 'Agentic Data Workflows & Automation',
+      disabled: true,
+      style: {
+        color: theme.colors.twilight,
+        fontWeight: 500,
+        cursor: 'default',
+      },
+    },
+  ];
+
+  const MenuContent = ({ isCollapsed = false }) => (
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: 'calc(100% - 48px)',
+      justifyContent: 'space-between'
+    }}>
+      <div style={{ flex: 1, paddingTop: '16px', overflow: 'hidden' }}>
+        <Menu
+          theme="light"
+          mode="inline"
+          selectedKeys={[location.pathname]}
+          style={{ background: 'transparent', border: 'none' }}
+          onClick={closeDrawer}
+          inlineCollapsed={isCollapsed}
+          items={menuItems.map((item) => ({
+            ...item,
+            label: <Link to={item.key}>{item.label}</Link>,
+          }))}
+        />
+      </div>
+      <div style={{ 
+        padding: isCollapsed ? '8px' : '12px 16px',
+        textAlign: 'center',
+        borderTop: `1px solid ${theme.colors.pewter}`,
+        flexShrink: 0
+      }}>
+        <img 
+          src="/poweredby-cloudera.png" 
+          alt="Powered by Cloudera" 
+          style={{ 
+            height: isCollapsed ? 20 : 32,
+            width: 'auto',
+            objectFit: 'contain',
+            maxWidth: '100%'
+          }} 
+        />
+      </div>
+    </div>
   );
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      {/* Desktop Sidebar */}
-      <Sider
-        breakpoint="lg"
-        collapsedWidth="0"
-        width={200}
-        className="desktop-sider"
-        style={{
-          overflow: 'auto',
-          height: '100vh',
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          background: theme.colors.white,
-          zIndex: 999,
-        }}
-      >
-        <MenuContent />
-      </Sider>
 
       {/* Mobile Drawer */}
       <Drawer
@@ -200,81 +173,121 @@ function AppContent() {
         <MenuContent />
       </Drawer>
 
-      <Layout className="main-layout" style={{ marginLeft: 200 }}>
-        <Header className="main-header" style={{ 
-          padding: '0 16px', 
-          background: theme.colors.white,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-          borderBottom: `2px solid ${theme.colors.pewter}`,
-          position: 'sticky',
-          top: 0,
-          zIndex: 998,
-        }}>
-          {/* Mobile Menu Button and Logo */}
-          <div className="mobile-header-left" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <MenuOutlined 
-              className="mobile-menu-icon"
-              onClick={showDrawer}
+      <Header className="main-header" style={{ 
+        padding: '0 16px', 
+        background: theme.colors.white,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        borderBottom: `2px solid ${theme.colors.pewter}`,
+        position: 'sticky',
+        top: 0,
+        zIndex: 998,
+      }}>
+        {/* Mobile Menu Button and Logo */}
+        <div className="mobile-header-left" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <MenuOutlined 
+            className="mobile-menu-icon"
+            onClick={showDrawer}
+            style={{ 
+              fontSize: 20, 
+              cursor: 'pointer', 
+              color: theme.colors.twilight,
+              display: 'none'
+            }} 
+          />
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            <img 
+              src={`/${randomLogo}`} 
+              alt="Xtractic AI" 
               style={{ 
-                fontSize: 20, 
-                cursor: 'pointer', 
-                color: theme.colors.twilight,
-                display: 'none'
+                height: 40,
+                width: 'auto',
+                objectFit: 'contain',
+                cursor: 'pointer'
               }} 
             />
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-              <img 
-                src={`/${randomLogo}`} 
-                alt="Xtractic AI" 
-                className="mobile-logo"
-                style={{ 
-                  height: 32,
-                  width: 'auto',
-                  objectFit: 'contain',
-                  display: 'none',
-                  cursor: 'pointer'
-                }} 
-              />
-              <img 
-                src="/xtractic-ai.png" 
-                alt="Xtractic AI"
-                className="mobile-logo-text"
-                style={{ 
-                  height: 24,
-                  width: 'auto',
-                  objectFit: 'contain',
-                  display: 'none',
-                  cursor: 'pointer'
-                }}
-              />
-            </Link>
-          </div>
+            <img 
+              src="/xtractic-ai.png" 
+              alt="Xtractic AI"
+              style={{ 
+                height: 28,
+                width: 'auto',
+                objectFit: 'contain',
+                cursor: 'pointer'
+              }}
+            />
+          </Link>
+        </div>
 
-          {/* Desktop Title */}
-          <div className="header-title" style={{ 
-            fontSize: 20,
-            fontWeight: 700,
-            color: theme.colors.twilight
-          }}>
-            Agentic Data Workflows & Automation powered by Cloudera
-          </div>
+        {/* Desktop Title */}
+        <div className="header-title" style={{ 
+          fontSize: 20,
+          fontWeight: 700,
+          color: theme.colors.twilight
+        }}>
+          
+        </div>
 
           {/* Header Actions */}
           <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             <Badge count={3} size="small" color={theme.colors.orange}>
               <BellOutlined style={{ fontSize: 20, cursor: 'pointer', color: theme.colors.twilight }} />
             </Badge>
-            <SettingOutlined className="desktop-icon" style={{ fontSize: 20, cursor: 'pointer', color: theme.colors.twilight }} />
+            <Dropdown menu={{ items: settingsMenuItems }} placement="bottomRight" trigger={['click']}>
+              <SettingOutlined className="desktop-icon" style={{ fontSize: 20, cursor: 'pointer', color: theme.colors.twilight }} />
+            </Dropdown>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
               <Avatar src="/suri.jpg" style={{ cursor: 'pointer' }} />
             </Dropdown>
           </div>
         </Header>
-        <Content className="main-content" style={{ margin: '24px 16px 0', overflow: 'initial' }}>
+
+      <Layout className="main-layout" style={{ marginLeft: 0, height: 'calc(100vh - 64px)' }}>
+        {/* Desktop Sidebar */}
+        <Sider
+          breakpoint="lg"
+          collapsedWidth="80"
+          width={200}
+          className="desktop-sider"
+          collapsed={collapsed}
+          onCollapse={(value) => setCollapsed(value)}
+          trigger={null}
+          style={{
+            overflow: 'hidden',
+            background: theme.colors.white,
+            borderRight: `1px solid ${theme.colors.pewter}`,
+            height: '100%',
+            position: 'relative',
+          }}
+        >
+          <MenuContent isCollapsed={collapsed} />
+          <div
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '48px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              borderTop: `1px solid ${theme.colors.pewter}`,
+              background: theme.colors.white,
+              color: theme.colors.twilight,
+              fontSize: '20px',
+              fontWeight: 'bold',
+            }}
+          >
+            {collapsed ? '»' : '«'}
+          </div>
+        </Sider>
+
+        <Content className="main-content" style={{ margin: '24px 16px 0', overflow: 'auto', height: '100%' }}>
           <div
             className="content-container"
             style={{

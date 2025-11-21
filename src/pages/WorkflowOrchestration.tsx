@@ -296,7 +296,7 @@ const WorkflowOrchestration = () => {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent'
         }}>
-          Workflow Orchestration
+          Agentic Workflows
         </h1>
         <Button
           type="primary"

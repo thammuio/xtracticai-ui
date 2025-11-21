@@ -62,9 +62,20 @@ function Login({ onLogin }: LoginProps) {
               style={{ height: 32 }}
             />
           </div>
-          <p style={{ color: theme.colors.accent3, margin: '16px 0 0 0' }}>
-            Agentic Data Workflows & Automation powered by Cloudera
-          </p>
+          <h2 style={{ 
+            color: theme.colors.twilight, 
+            margin: '20px 0 8px 0',
+            fontSize: 20,
+            fontWeight: 600,
+            lineHeight: 1.4
+          }}>
+            Agentic Data Workflows & Automation
+          </h2>
+          <img
+            src="/poweredby-cloudera.png"
+            alt="Powered by Cloudera"
+            style={{ height: 32, marginTop: 8 }}
+          />
         </div>
 
         <Form
