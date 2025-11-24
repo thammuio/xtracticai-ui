@@ -176,12 +176,6 @@ const WorkflowOrchestration = () => {
       key: 'records_extracted',
     },
     {
-      title: 'Last Activity',
-      dataIndex: 'last_activity',
-      key: 'last_activity',
-      render: (lastActivity: string) => formatDateTime(lastActivity),
-    },
-    {
       title: 'Submitted At',
       dataIndex: 'submitted_at',
       key: 'submitted_at',
