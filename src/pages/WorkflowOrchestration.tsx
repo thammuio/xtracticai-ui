@@ -479,7 +479,7 @@ const WorkflowOrchestration = () => {
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Records Extracted">{selectedWorkflow.records_extracted}</Descriptions.Item>
-              <Descriptions.Item label="Last Activity">{formatDateTime(selectedWorkflow.last_activity)}</Descriptions.Item>
+          
               <Descriptions.Item label="Submitted At">{formatDateTime(selectedWorkflow.submitted_at)}</Descriptions.Item>
               {selectedWorkflow.file_size_bytes !== null && (
                 <Descriptions.Item label="File Size">{(selectedWorkflow.file_size_bytes / 1024 / 1024).toFixed(2)} MB</Descriptions.Item>
